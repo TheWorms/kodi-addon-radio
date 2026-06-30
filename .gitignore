@@ -1,0 +1,11 @@
+# Archives installables : publiées en Release uniquement, jamais commitées
+*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Système
+.DS_Store
+Thumbs.db

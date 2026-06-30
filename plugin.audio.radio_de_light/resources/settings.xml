@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings version="1">
+    <section id="plugin.audio.radio_de_light">
+        <category id="playback" label="30100">
+            <group id="1" label="30101">
+                <setting id="cinema.enabled" type="boolean" label="30102" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                </setting>
+                <setting id="cinema.pulsebar" type="boolean" label="30103" help="">
+                    <level>0</level>
+                    <default>true</default>
+                    <control type="toggle"/>
+                    <dependencies>
+                        <dependency type="enable" setting="cinema.enabled" operator="is">true</dependency>
+                    </dependencies>
+                </setting>
+            </group>
+        </category>
+    </section>
+</settings>
