@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window type="dialog">
+    <defaultcontrol always="true">0</defaultcontrol>
+    <animation effect="fade" time="200">WindowOpen</animation>
+    <animation effect="fade" time="200">WindowClose</animation>
+    <controls>
+        <control type="image">
+            <description>Fond : logo etire et tres assombri</description>
+            <left>0</left>
+            <top>0</top>
+            <width>1280</width>
+            <height>720</height>
+            <aspectratio>scale</aspectratio>
+            <texture>$INFO[Window.Property(logo)]</texture>
+            <colordiffuse>22FFFFFF</colordiffuse>
+        </control>
+        <control type="image">
+            <description>Voile noir</description>
+            <left>0</left>
+            <top>0</top>
+            <width>1280</width>
+            <height>720</height>
+            <texture>white.png</texture>
+            <colordiffuse>D0000000</colordiffuse>
+        </control>
+        <control type="image">
+            <description>Logo de la station</description>
+            <left>440</left>
+            <top>110</top>
+            <width>400</width>
+            <height>320</height>
+            <aspectratio>keep</aspectratio>
+            <texture>$INFO[Window.Property(logo)]</texture>
+        </control>
+        <control type="label">
+            <description>Nom de la station</description>
+            <left>140</left>
+            <top>600</top>
+            <width>1000</width>
+            <height>40</height>
+            <align>center</align>
+            <font>font13</font>
+            <textcolor>FFFFFFFF</textcolor>
+            <label>$INFO[Window.Property(name)]</label>
+        </control>
+        <control type="group">
+            <description>Barre de pulsation (egaliseur anime)</description>
+            <visible>String.IsEqual(Window.Property(showbar),1)</visible>
+            <left>380</left>
+            <top>470</top>
+            <width>520</width>
+            <height>90</height>
+        <control type="image">
+            <left>0</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="480" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>22</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="680" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>44</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>66</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>88</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="360" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>110</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="540" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>132</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>154</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>176</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="420" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>198</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="600" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>220</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="360" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>242</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>264</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="540" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>286</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="160" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>308</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>330</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="480" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>352</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>374</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="540" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>396</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="480" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>418</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="480" delay="160" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>440</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="420" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>462</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>484</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        <control type="image">
+            <left>506</left>
+            <top>0</top>
+            <width>14</width>
+            <height>90</height>
+            <texture>white.png</texture>
+            <colordiffuse>FF1DB954</colordiffuse>
+            <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="680" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
+        </control>
+        </control>
+    </controls>
+</window>

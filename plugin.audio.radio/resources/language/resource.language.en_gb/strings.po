@@ -1,0 +1,76 @@
+# Kodi Media Center language file
+# Addon Name: Radio
+# Addon id: plugin.audio.radio
+# Addon Provider: Publish3r
+msgid ""
+msgstr ""
+"Project-Id-Version: plugin.audio.radio\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-30 00:00+0000\n"
+"PO-Revision-Date: 2026-06-30 00:00+0000\n"
+"Last-Translator: TheWorms\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+
+msgctxt "#30000"
+msgid "Stations from your region"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Search for a station"
+msgstr ""
+
+msgctxt "#30002"
+msgid "My stations"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Back to menu"
+msgstr ""
+
+msgctxt "#30004"
+msgid "Next page"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Error"
+msgstr ""
+
+msgctxt "#30006"
+msgid "No streams found."
+msgstr ""
+
+msgctxt "#30007"
+msgid "Add to \"My stations\""
+msgstr ""
+
+msgctxt "#30008"
+msgid "Remove from \"My stations\""
+msgstr ""
+
+msgctxt "#30009"
+msgid "Station added to the list."
+msgstr ""
+
+msgctxt "#30010"
+msgid "Search"
+msgstr ""
+
+msgctxt "#30100"
+msgid "Playback"
+msgstr ""
+
+msgctxt "#30101"
+msgid "Cinema view"
+msgstr ""
+
+msgctxt "#30102"
+msgid "Show station logo fullscreen during playback"
+msgstr ""
+
+msgctxt "#30103"
+msgid "Show pulse bar under the logo"
+msgstr ""
