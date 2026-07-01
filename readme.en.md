@@ -2,6 +2,10 @@
 
 # Radio
 
+<!-- version:auto -->
+**Version : 1.0.7**
+<!-- /version:auto -->
+
 Kodi add-on to listen to **radio streams**, with a localized interface.
 
 It is **inspired by the [radio.de](https://www.radio.de) service** and relies on its

@@ -2,6 +2,10 @@
 
 # Radio — interface française
 
+<!-- version:auto -->
+**Version : 1.0.7**
+<!-- /version:auto -->
+
 Module Kodi pour écouter des **flux radio en streaming**, avec une interface **en français**.
 
 Le module s'**inspire du service [radio.de](https://www.radio.de)** et s'appuie sur son API
