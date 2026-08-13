@@ -23,6 +23,30 @@ favourites_list = xbmcvfs.translatePath('special://home/userdata/addon_data/plug
 temp_list = xbmcvfs.translatePath('special://home/userdata/addon_data/plugin.audio.radio/temp.txt')
 no_image = "special://home/addons/plugin.audio.radio/no_image.jpg"
 
+def render_stations(stud_list):
+    """Rend une liste de stations de l'API radio-api.net.
+    Garde PAR station : une entree malformee (sans stream, champ absent)
+    est ignoree au lieu de faire echouer la page entiere."""
+    for i in stud_list:
+        try:
+            name = i.get('name') or ''
+            image = (i.get('logo300x300') or i.get('logo630x630')
+                     or i.get('logo100x100') or no_image)
+            streams = i.get('streams') or []
+            if not name or not streams or not streams[0].get('url'):
+                continue
+            url = streams[0]['url']
+            city = i.get('city') or ''
+            country = i.get('country') or ''
+            genres = ', '.join(i.get('genres') or [])
+            place = ', '.join(p for p in (city, country) if p)
+            desc = (place + '[CR]' if place else '') + genres
+            addLink(url, name, image, desc, '', '')
+        except Exception as e:
+            xbmc.log('plugin.audio.radio: station ignoree (%s)' % e,
+                     xbmc.LOGWARNING)
+
+
 def MENU():
     addDir(L(30000), '-', 2, addonicon, '', L(30000))
     addDir(L(30001), '-', 3, addonicon, '', L(30001))
@@ -35,44 +59,7 @@ def LOCAL(page):
         json_data = json.loads(r.content.decode())
         stud_list = json_data['playables']
         count = int(json_data['totalCount'])
-        for i in stud_list:
-            name = i['name']
-            image = i['logo300x300']
-            if image == "":
-                image = i['logo630x630']
-            if image == "":
-                image = i['logo100x100']
-            if image == "":
-                image = no_image
-            url = i['streams'][0]['url']
-            try:
-                city = i['city']
-            except:
-                city = ""
-            try:
-                country = i['country']
-            except:
-                country = ""
-            if city != "" and country != "":
-                city = city + ", "
-                country = country + "[CR]"
-            if city == "" and country != "":
-                country = country + "[CR]"
-            if city != "" and country == "":
-                city = city + "[CR]"
-            try:
-                genres = str(i['genres'])
-                genres = genres.replace("[", "")
-                genres = genres.replace("]", "")
-                genres = genres.replace("'", "")
-                genres = genres.replace('"', '')
-            except:
-                genres = ""
-            city = "" + city + ""
-            country = "" + country + ""
-            genres = genres
-            desc = city + country + genres
-            addLink(url, name, image, desc, '', '')
+        render_stations(stud_list)
         offset = page.replace('https://prod.radio-api.net/stations/local?count=25&offset=', '')
         offset = int(offset) + 25
         if offset < count:
@@ -89,49 +76,7 @@ def SEARCH(page):
         json_data = json.loads(r.content.decode())
         stud_list = json_data['playables']
         count = int(json_data['totalCount'])
-        for i in stud_list:
-            name = i['name']
-            image = i['logo300x300']
-            if image == "":
-                image = i['logo630x630']
-            if image == "":
-                image = i['logo100x100']
-            if image == "":
-                image = no_image
-            url = i['streams'][0]['url']
-            try:
-                city = i['city']
-                city = city + "[CR]"
-            except:
-                city = ""
-            try:
-                city = i['city']
-            except:
-                city = ""
-            try:
-                country = i['country']
-            except:
-                country = ""
-            if city != "" and country != "":
-                city = city + ", "
-                country = country + "[CR]"
-            if city == "" and country != "":
-                country = country + "[CR]"
-            if city != "" and country == "":
-                city = city + "[CR]"
-            try:
-                genres = str(i['genres'])
-                genres = genres.replace("[", "")
-                genres = genres.replace("]", "")
-                genres = genres.replace("'", "")
-                genres = genres.replace('"', '')
-            except:
-                genres = ""
-            city = "" + city + ""
-            country = "" + country + ""
-            genres = genres
-            desc = city + country + genres
-            addLink(url, name, image, desc, '', '')
+        render_stations(stud_list)
         surl = re.findall('https(.*?)offset=', page, re.DOTALL | re.MULTILINE)[0]
         surl = "https" + surl
         offset = page.replace(surl + 'offset=', '')
@@ -144,44 +89,24 @@ def SEARCH(page):
         xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + L(30005) + '[/B]', L(30006), 5000, addonicon))
 
 def MYSTATIONS():
-    if not os.path.isdir(save_folder):
-        os.makedirs(save_folder)
-    if os.path.exists(f"{favourites_list}"):
-        r = open(f"{favourites_list}").read()
-        match = re.compile('###NAME###(.+?)###URL###(.+?)###LOGO###(.+?)###').findall(r)
-        for name, url, image in match:
-            desc = ""
-            addMy(url, name, image, desc, '', '')
-    else:
-        with open(f"{favourites_list}", "a") as f:
-            f.close()
-        MYSTATIONS()
+    # v1.1.0 : favoris partages avec la nouvelle interface (favorites.json,
+    # migration automatique de l'ancien sender.txt)
+    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
+    import radio_ui
+    for f in radio_ui.load_favorites():
+        addMy(f.get('url', ''), f.get('name', ''), f.get('logo', ''),
+              '', '', '')
 
 def ADDSTATION(url, name, image):
-    if not os.path.isdir(save_folder):
-        os.makedirs(save_folder)
-    if os.path.exists(f"{favourites_list}"):
-        pass
-    else:
-        with open(f"{favourites_list}", "a") as f:
-            f.close()
-    with open(f"{favourites_list}", "a") as f:
-        f.write(f"###NAME###{name}###URL###{url}###LOGO###{image}###")
-        f.write("\n")
-        f.close()
+    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
+    import radio_ui
+    radio_ui.add_favorite(name, url, image)
     xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + name + '[/B]', L(30009), 5000, addonicon))
 
 def DELSTATION(url):
-    try:
-        os.remove(f"{temp_list}")
-    except:
-        pass
-    with open(f"{favourites_list}", "r") as file:
-        with open(f"{temp_list}", "w") as output:
-            for line in file:
-                if url not in line.strip("\n"):
-                    output.write(line)
-    os.replace(temp_list, favourites_list)
+    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
+    import radio_ui
+    radio_ui.remove_favorite(url)
     xbmc.executebuiltin("Container.Refresh")
 
 def addLink(link, name, image, desc, urlType, fanart):
@@ -189,7 +114,9 @@ def addLink(link, name, image, desc, urlType, fanart):
     liz = xbmcgui.ListItem(name)
     url = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=1&name=" + urllib.parse.quote_plus(name) + "&description=" + urllib.parse.quote_plus(desc) + "&iconimage=" + urllib.parse.quote_plus(image)
     add = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=6&name=" + urllib.parse.quote_plus(name) + "&image=" + urllib.parse.quote_plus(image)
-    liz.setInfo(type="Video", infoLabels={"Title": name, "Plot": desc})
+    tag = liz.getMusicInfoTag()
+    tag.setTitle(name)
+    tag.setComment(desc)
     liz.setArt({'icon': image, 'thumb': image, 'poster': image, 'fanart': addonfanart})
     contextMenuItems = []
     contextMenuItems.append((L(30007), f'RunPlugin(plugin://plugin.audio.radio/{add})'))
@@ -201,7 +128,9 @@ def addMy(link, name, image, desc, urlType, fanart):
     liz = xbmcgui.ListItem(name)
     url = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=1&name=" + urllib.parse.quote_plus(name) + "&description=" + urllib.parse.quote_plus(desc) + "&iconimage=" + urllib.parse.quote_plus(image)
     rem = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=7"
-    liz.setInfo(type="Video", infoLabels={"Title": name, "Plot": desc})
+    tag = liz.getMusicInfoTag()
+    tag.setTitle(name)
+    tag.setComment(desc)
     liz.setArt({'icon': image, 'thumb': image, 'poster': image, 'fanart': addonfanart})
     contextMenuItems = []
     contextMenuItems.append((L(30008), f'RunPlugin(plugin://plugin.audio.radio/{rem})'))
@@ -212,7 +141,9 @@ def addDir(name, url, mode, iconimage, fanart, description):
     u = sys.argv[0] + "?url=" + urllib.parse.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.parse.quote_plus(name) + "&iconimage=" + urllib.parse.quote_plus(iconimage) + "&fanart=" + urllib.parse.quote_plus(fanart) + "&description=" + urllib.parse.quote_plus(description)
     ok = True
     liz = xbmcgui.ListItem(name)
-    liz.setInfo(type="Video", infoLabels={"Title": name, "Plot": description})
+    tag = liz.getMusicInfoTag()
+    tag.setTitle(name)
+    tag.setComment(description)
     liz.setArt({'icon': iconimage, 'thumb': iconimage, 'fanart': addonfanart})
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
     return ok
@@ -226,50 +157,16 @@ def get_bool_setting(key, fallback=True):
             return fallback
         return v == 'true'
 
-class RadioCinema(xbmcgui.WindowXMLDialog):
-    def set_data(self, logo, name, show_bar):
-        self._logo = logo if logo else no_image
-        self._name = name if name else ''
-        self._show_bar = show_bar
+# La vue cinema vit desormais dans resources/lib/cinema.py (partagee
+# avec l'interface plein ecran).
+sys.path.append(os.path.join(addondir, 'resources', 'lib'))
+from cinema import RadioCinema  # noqa: E402
+import radio_ui as _rui  # noqa: E402
 
-    def onInit(self):
-        try:
-            self.setProperty('logo', self._logo)
-            self.setProperty('name', self._name)
-            self.setProperty('showbar', '1' if self._show_bar else '0')
-        except Exception:
-            pass
-        threading.Thread(target=self._watch, daemon=True).start()
+# Fond du menu classique : l'image choisie dans Configuration remplace le
+# fanart historique (radio.de) ; repli sur le fanart de l'addon.
+addonfanart = _rui.background_path() or addonfanart
 
-    def _watch(self):
-        player = xbmc.Player()
-        monitor = xbmc.Monitor()
-        # Laisse le flux démarrer (max 15 s)
-        start = time.time()
-        while not monitor.abortRequested() and (time.time() - start) < 15:
-            if player.isPlaying():
-                break
-            if monitor.waitForAbort(0.5):
-                break
-        # Reste affiché tant que la lecture continue
-        while not monitor.abortRequested():
-            if not player.isPlaying():
-                break
-            if monitor.waitForAbort(1):
-                break
-        try:
-            self.close()
-        except Exception:
-            pass
-
-    def onAction(self, action):
-        # Retour / menu précédent / stop : on arrête la station et on ferme la vue
-        if action.getId() in (9, 10, 13, 92):
-            try:
-                xbmc.Player().stop()
-            except Exception:
-                pass
-            self.close()
 
 def get_params():
     param = []
@@ -327,11 +224,35 @@ try:
 except:
     pass
 
-print("Mode: " + str(mode))
-print("URL: " + str(url))
-print("Name: " + str(name))
+xbmc.log("plugin.audio.radio: mode=%s url=%s name=%s"
+         % (mode, url, name), xbmc.LOGDEBUG)
 
 if mode == None or url == None or len(url) < 1:
+    if get_bool_setting('ui.fullscreen', True):
+        # Nouvelle interface plein écran (v1.1.0). endOfDirectory d'abord :
+        # l'invocation plugin rend la main a Kodi, puis la fenetre modale
+        # s'affiche (meme mecanique que la vue cinema du mode 1).
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=False,
+                                  cacheToDisc=False)
+        # NE PAS appeler ReplaceWindow ici : executebuiltin est asynchrone,
+        # le changement de fenetre arrivait PENDANT l'ouverture de
+        # l'interface et la refermait aussitot -> boucle ouverture/retour.
+        # Depuis la v1.1.4 l'interface est un WindowXML : elle remplace
+        # elle-meme la fenetre courante, aucun menage prealable requis.
+        sys.path.append(os.path.join(addondir, 'resources', 'lib'))
+        try:
+            import radio_ui
+            radio_ui.open_home()
+        except Exception as e:
+            xbmc.log('plugin.audio.radio: UI error, fallback menu (%s)' % e,
+                     xbmc.LOGERROR)
+            xbmc.executebuiltin(
+                'ActivateWindow(Music,plugin://plugin.audio.radio/?mode=99)')
+    else:
+        MENU()
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+elif mode == 99:
+    # menu classique force (repli de la nouvelle interface)
     MENU()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 1:
@@ -364,8 +285,8 @@ elif mode == 3:
     if (kb.isConfirmed()):
         try:
             search = kb.getText()
-            search = search.replace(" ", "+")
-            search = 'https://prod.radio-api.net/stations/search?query=' + search + '&count=25&offset=0'
+            search = ('https://prod.radio-api.net/stations/search?query='
+                      + urllib.parse.quote_plus(search) + '&count=25&offset=0')
             SEARCH(search)
         except:
             pass
@@ -382,7 +303,7 @@ elif mode == 6:
     image = params.get('image')
     image = urllib.parse.unquote_plus(image) if image else ""
     if "special://" in image or image == "":
-        image = "https://i.postimg.cc/N0MfwFNf/no-image.jpg"
+        image = addonicon  # icone locale : pas de dependance a un hebergeur externe
     ADDSTATION(url, name, image)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 7:

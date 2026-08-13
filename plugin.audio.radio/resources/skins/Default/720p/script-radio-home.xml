@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- script-radio-home.xml : accueil plein écran "façon radio.fr" (v1.1.3).
+     Toutes les textures d'aplat passent par $INFO[Window.Property(ui.solid)]
+     (fichier généré par Python dans le profil) : plus aucune dépendance à un
+     media embarqué qui pourrait manquer -> le fond est toujours opaque.
+     3 rangées de grandes tuiles (8 visibles par rangée) ; chaque tuile porte
+     un voile sombre, retiré sur la tuile focalisée (effet "hover"). -->
+<!-- type="window" (et non "dialog") : la fenetre REMPLACE celle du skin.
+     <backgroundcolor> peint un fond opaque natif, sans dependre d'aucune
+     texture -> plus de fanart de l'addon ni de widgets visibles derriere. -->
+<window>
+  <defaultcontrol always="true">210</defaultcontrol>
+  <backgroundcolor>FF10141B</backgroundcolor>
+  <controls>
+
+    <!-- ===================== Fond plein écran ===================== -->
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture background="true">$INFO[Window.Property(ui.bg)]</texture>
+      <aspectratio>scale</aspectratio>
+    </control>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="FF10141B">$INFO[Window.Property(ui.solid)]</texture>
+      <visible>String.IsEqual(Window.Property(ui.bgmode),solid)</visible>
+    </control>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="D910141B">$INFO[Window.Property(ui.solid)]</texture>
+      <visible>!String.IsEqual(Window.Property(ui.bgmode),solid)</visible>
+    </control>
+
+    <!-- ========================= En-tête ========================= -->
+    <control type="label">
+      <left>36</left><top>12</top><width>400</width><height>40</height>
+      <label>RADIO[COLOR FF5CC85C].[/COLOR]</label>
+      <font>font27</font><textcolor>FFE8EAED</textcolor>
+    </control>
+
+    <control type="button" id="110">
+      <left>810</left><top>16</top><width>190</width><height>36</height>
+      <label>[B]$ADDON[plugin.audio.radio 30010][/B]</label>
+      <font>font12</font>
+      <textcolor>FF7A828E</textcolor><focusedcolor>FF5CC85C</focusedcolor>
+      <align>center</align><aligny>center</aligny>
+      <texturenofocus colordiffuse="991A2029">$INFO[Window.Property(ui.solid)]</texturenofocus>
+      <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>
+      <onup>210</onup><ondown>210</ondown>
+      <onleft>112</onleft><onright>112</onright>
+    </control>
+    <control type="button" id="112">
+      <left>1014</left><top>16</top><width>230</width><height>36</height>
+      <label>[B]$ADDON[plugin.audio.radio 30133][/B]</label>
+      <font>font12</font>
+      <textcolor>FF7A828E</textcolor><focusedcolor>FF5CC85C</focusedcolor>
+      <align>center</align><aligny>center</aligny>
+      <texturenofocus colordiffuse="991A2029">$INFO[Window.Property(ui.solid)]</texturenofocus>
+      <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>
+      <onup>210</onup><ondown>210</ondown>
+      <onleft>110</onleft><onright>110</onright>
+    </control>
+    <!-- ========================= Rangée 0 ========================= -->
+    <control type="label">
+      <left>36</left><top>60</top><width>800</width><height>24</height>
+      <label>$INFO[Window.Property(row0.title)]  [COLOR FF8B93A1]$INFO[Window.Property(row0.count)][/COLOR]</label>
+      <font>font13</font><textcolor>FFE8EAED</textcolor>
+    </control>
+    <control type="list" id="210">
+      <left>28</left><top>88</top><width>1224</width><height>180</height>
+      <orientation>horizontal</orientation>
+      <onup>110</onup><ondown>220</ondown>
+      <scrolltime tween="quadratic" easing="out">220</scrolltime>
+      <itemlayout width="153" height="180">
+        <!-- Station non selectionnee : le logo est assombri directement
+             par colordiffuse (agit sur l'image, sans texture externe). -->
+        <control type="image">
+          <left>8</left><top>0</top><width>137</width><height>137</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+        </control>
+        <control type="label">
+          <left>2</left><top>140</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+        </control>
+      </itemlayout>
+      <focusedlayout width="153" height="180">
+        <!-- Cadre vert epais UNIQUEMENT quand CETTE liste a le focus :
+             sans la condition, l'item courant de chaque rangee restait
+             encadre (toutes les 1res stations apparaissaient vertes). -->
+        <control type="group">
+          <visible>Control.HasFocus(210)</visible>
+          <control type="image">
+            <left>0</left><top>-8</top><width>153</width><height>153</height>
+            <texture colordiffuse="FF5CC85C">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+          <control type="image">
+            <left>5</left><top>-3</top><width>143</width><height>143</height>
+            <texture colordiffuse="FF10141B">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+        </control>
+        <!-- L'item courant d'une rangee inactive reste rendu avec ce
+             focusedlayout : logo et libelle doivent donc etre grises
+             quand la liste n'a pas le focus, en pleine lumiere sinon. -->
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>!Control.HasFocus(210)</visible>
+        </control>
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FFFFFFFF">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>Control.HasFocus(210)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+          <visible>!Control.HasFocus(210)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FFFFFFFF</textcolor><align>center</align>
+          <visible>Control.HasFocus(210)</visible>
+        </control>
+      </focusedlayout>
+    </control>
+
+    <!-- ========================= Rangée 1 ========================= -->
+    <control type="label">
+      <left>36</left><top>272</top><width>800</width><height>24</height>
+      <label>$INFO[Window.Property(row1.title)]  [COLOR FF8B93A1]$INFO[Window.Property(row1.count)][/COLOR]</label>
+      <font>font13</font><textcolor>FFE8EAED</textcolor>
+    </control>
+    <control type="list" id="220">
+      <left>28</left><top>300</top><width>1224</width><height>180</height>
+      <orientation>horizontal</orientation>
+      <onup>210</onup><ondown>230</ondown>
+      <scrolltime tween="quadratic" easing="out">220</scrolltime>
+      <itemlayout width="153" height="180">
+        <!-- Station non selectionnee : le logo est assombri directement
+             par colordiffuse (agit sur l'image, sans texture externe). -->
+        <control type="image">
+          <left>8</left><top>0</top><width>137</width><height>137</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+        </control>
+        <control type="label">
+          <left>2</left><top>140</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+        </control>
+      </itemlayout>
+      <focusedlayout width="153" height="180">
+        <!-- Cadre vert epais UNIQUEMENT quand CETTE liste a le focus :
+             sans la condition, l'item courant de chaque rangee restait
+             encadre (toutes les 1res stations apparaissaient vertes). -->
+        <control type="group">
+          <visible>Control.HasFocus(220)</visible>
+          <control type="image">
+            <left>0</left><top>-8</top><width>153</width><height>153</height>
+            <texture colordiffuse="FF5CC85C">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+          <control type="image">
+            <left>5</left><top>-3</top><width>143</width><height>143</height>
+            <texture colordiffuse="FF10141B">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+        </control>
+        <!-- L'item courant d'une rangee inactive reste rendu avec ce
+             focusedlayout : logo et libelle doivent donc etre grises
+             quand la liste n'a pas le focus, en pleine lumiere sinon. -->
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>!Control.HasFocus(220)</visible>
+        </control>
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FFFFFFFF">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>Control.HasFocus(220)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+          <visible>!Control.HasFocus(220)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FFFFFFFF</textcolor><align>center</align>
+          <visible>Control.HasFocus(220)</visible>
+        </control>
+      </focusedlayout>
+    </control>
+
+    <!-- ========================= Rangée 2 ========================= -->
+    <control type="label">
+      <left>36</left><top>484</top><width>800</width><height>24</height>
+      <label>$INFO[Window.Property(row2.title)]  [COLOR FF8B93A1]$INFO[Window.Property(row2.count)][/COLOR]</label>
+      <font>font13</font><textcolor>FFE8EAED</textcolor>
+    </control>
+    <control type="list" id="230">
+      <left>28</left><top>512</top><width>1224</width><height>180</height>
+      <orientation>horizontal</orientation>
+      <onup>220</onup><ondown>310</ondown>
+      <scrolltime tween="quadratic" easing="out">220</scrolltime>
+      <itemlayout width="153" height="180">
+        <!-- Station non selectionnee : le logo est assombri directement
+             par colordiffuse (agit sur l'image, sans texture externe). -->
+        <control type="image">
+          <left>8</left><top>0</top><width>137</width><height>137</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+        </control>
+        <control type="label">
+          <left>2</left><top>140</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+        </control>
+      </itemlayout>
+      <focusedlayout width="153" height="180">
+        <!-- Cadre vert epais UNIQUEMENT quand CETTE liste a le focus :
+             sans la condition, l'item courant de chaque rangee restait
+             encadre (toutes les 1res stations apparaissaient vertes). -->
+        <control type="group">
+          <visible>Control.HasFocus(230)</visible>
+          <control type="image">
+            <left>0</left><top>-8</top><width>153</width><height>153</height>
+            <texture colordiffuse="FF5CC85C">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+          <control type="image">
+            <left>5</left><top>-3</top><width>143</width><height>143</height>
+            <texture colordiffuse="FF10141B">$INFO[Window.Property(ui.solid)]</texture>
+          </control>
+        </control>
+        <!-- L'item courant d'une rangee inactive reste rendu avec ce
+             focusedlayout : logo et libelle doivent donc etre grises
+             quand la liste n'a pas le focus, en pleine lumiere sinon. -->
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FF5A5F68">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>!Control.HasFocus(230)</visible>
+        </control>
+        <control type="image">
+          <left>6</left><top>-2</top><width>141</width><height>141</height>
+          <texture background="true" colordiffuse="FFFFFFFF">$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <visible>Control.HasFocus(230)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FF7A828E</textcolor><align>center</align>
+          <visible>!Control.HasFocus(230)</visible>
+        </control>
+        <control type="label">
+          <left>2</left><top>146</top><width>149</width><height>20</height>
+          <label>$INFO[ListItem.Label]</label>
+          <font>font12</font><textcolor>FFFFFFFF</textcolor><align>center</align>
+          <visible>Control.HasFocus(230)</visible>
+        </control>
+      </focusedlayout>
+    </control>
+
+    <!-- ==================== Barre de lecture ==================== -->
+    <control type="group">
+      <visible>String.IsEqual(Window.Property(ui.nowbar),1)</visible>
+      <control type="image">
+        <left>0</left><top>648</top><width>1280</width><height>72</height>
+        <texture colordiffuse="F21A2029">$INFO[Window.Property(ui.solid)]</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>647</top><width>1280</width><height>1</height>
+        <texture colordiffuse="FF2A3140">$INFO[Window.Property(ui.solid)]</texture>
+      </control>
+      <control type="image">
+        <left>36</left><top>656</top><width>56</width><height>56</height>
+        <texture background="true">$INFO[Window.Property(np.logo)]</texture>
+        <aspectratio>keep</aspectratio>
+      </control>
+      <control type="label">
+        <left>106</left><top>656</top><width>400</width><height>26</height>
+        <label>$INFO[Window.Property(np.name)]</label>
+        <font>font13</font><textcolor>FFE8EAED</textcolor>
+      </control>
+      <control type="label">
+        <left>106</left><top>684</top><width>400</width><height>20</height>
+        <label>[COLOR FF5CC85C]● EN DIRECT[/COLOR]</label>
+        <font>font10</font>
+        <visible>String.IsEqual(Window.Property(np.playing),1)</visible>
+        <animation effect="fade" start="100" end="35" time="800" pulse="true" condition="true">Conditional</animation>
+      </control>
+      <control type="label">
+        <left>106</left><top>662</top><width>500</width><height>26</height>
+        <label>$ADDON[plugin.audio.radio 30134]</label>
+        <font>font12</font><textcolor>FF7A828E</textcolor>
+        <visible>!String.IsEqual(Window.Property(np.playing),1)</visible>
+      </control>
+      <!-- Zone égaliseur : barres ajoutées par Python (addControls) -->
+      <control type="button" id="310">
+        <left>1100</left><top>664</top><width>144</width><height>40</height>
+        <label>■  Stop</label>
+        <font>font12</font>
+        <textcolor>FFC7CDD7</textcolor><focusedcolor>FFFFFFFF</focusedcolor>
+        <align>center</align><aligny>center</aligny>
+        <texturenofocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturenofocus>
+        <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>
+        <onup>230</onup><ondown>110</ondown>
+        <visible>String.IsEqual(Window.Property(np.playing),1)</visible>
+      </control>
+    </control>
+
+  </controls>
+</window>

@@ -74,3 +74,179 @@ msgstr "Senderlogo während der Wiedergabe im Vollbild anzeigen"
 msgctxt "#30103"
 msgid "Show pulse bar under the logo"
 msgstr "Pulsbalken unter dem Logo anzeigen"
+
+msgctxt "#30110"
+msgid "Interface"
+msgstr "Oberfläche"
+
+msgctxt "#30111"
+msgid "Fullscreen home"
+msgstr "Vollbild-Startseite"
+
+msgctxt "#30112"
+msgid "Use the fullscreen interface"
+msgstr "Vollbild-Oberfläche verwenden"
+
+msgctxt "#30113"
+msgid "Turn off to get the classic Kodi menu back"
+msgstr "Deaktivieren, um das klassische Kodi-Menü zu verwenden"
+
+msgctxt "#30114"
+msgid "Stations per row"
+msgstr "Sender pro Reihe"
+
+msgctxt "#30115"
+msgid "Genre row on home (empty = none)"
+msgstr "Genre-Reihe auf der Startseite (leer = keine)"
+
+msgctxt "#30116"
+msgid "Genre name, e.g. Jazz"
+msgstr "Genrename, z. B. Jazz"
+
+msgctxt "#30117"
+msgid "Equalizer in the playback bar"
+msgstr "Equalizer in der Wiedergabeleiste"
+
+msgctxt "#30118"
+msgid "Animated bars while listening (visual only)"
+msgstr "Animierte Balken beim Hören (nur visuell)"
+
+msgctxt "#30120"
+msgid "Top stations"
+msgstr "Top-Sender"
+
+msgctxt "#30121"
+msgid "Results for"
+msgstr "Ergebnisse für"
+
+msgctxt "#30122"
+msgid "More"
+msgstr "Weitere"
+
+msgctxt "#30123"
+msgid "Genres"
+msgstr "Genres"
+
+msgctxt "#30124"
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgctxt "#30125"
+msgid "Background"
+msgstr "Hintergrund"
+
+msgctxt "#30126"
+msgid "Photo backgrounds ship with the add-on"
+msgstr "Foto-Hintergründe werden mitgeliefert"
+
+msgctxt "#30127"
+msgid "Solid dark"
+msgstr "Einfarbig dunkel"
+
+msgctxt "#30128"
+msgid "RADIO letters"
+msgstr "RADIO-Buchstaben"
+
+msgctxt "#30129"
+msgid "Studio microphone"
+msgstr "Studiomikrofon"
+
+msgctxt "#30130"
+msgid "ON AIR sign"
+msgstr "ON-AIR-Schild"
+
+msgctxt "#30131"
+msgid "Mixing console"
+msgstr "Mischpult"
+
+msgctxt "#30132"
+msgid "Close"
+msgstr "Schließen"
+
+msgctxt "#30133"
+msgid "Configuration"
+msgstr "Konfiguration"
+
+msgctxt "#30134"
+msgid "No station playing"
+msgstr "Kein Sender aktiv"
+
+msgctxt "#30135"
+msgid "Background image missing — solid colour used"
+msgstr "Hintergrundbild fehlt — einfarbig"
+
+msgctxt "#30140"
+msgid "None"
+msgstr "Keine"
+
+msgctxt "#30141"
+msgid "Jazz"
+msgstr "Jazz"
+
+msgctxt "#30142"
+msgid "Rock"
+msgstr "Rock"
+
+msgctxt "#30143"
+msgid "Pop"
+msgstr "Pop"
+
+msgctxt "#30144"
+msgid "Electro"
+msgstr "Elektro"
+
+msgctxt "#30145"
+msgid "Rap"
+msgstr "Rap"
+
+msgctxt "#30146"
+msgid "Classical"
+msgstr "Klassik"
+
+msgctxt "#30147"
+msgid "Chill"
+msgstr "Chill"
+
+msgctxt "#30148"
+msgid "Oldies"
+msgstr "Oldies"
+
+msgctxt "#30149"
+msgid "Metal"
+msgstr "Metal"
+
+msgctxt "#30150"
+msgid "Reggae"
+msgstr "Reggae"
+
+msgctxt "#30151"
+msgid "Country"
+msgstr "Country"
+
+msgctxt "#30152"
+msgid "News"
+msgstr "Nachrichten"
+
+msgctxt "#30153"
+msgid "Sport"
+msgstr "Sport"
+
+msgctxt "#30154"
+msgid "Kids"
+msgstr "Kinder"
+
+msgctxt "#30136"
+msgid "While listening"
+msgstr "Beim Hören"
+
+msgctxt "#30137"
+msgid "Bottom bar or fullscreen logo — the two are exclusive"
+msgstr "Leiste unten oder Vollbild-Logo — sich gegenseitig ausschließend"
+
+msgctxt "#30138"
+msgid "Fullscreen station logo"
+msgstr "Sender-Logo im Vollbild"
+
+msgctxt "#30139"
+msgid "Bar at the bottom"
+msgstr "Leiste am unteren Rand"

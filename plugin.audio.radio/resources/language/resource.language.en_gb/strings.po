@@ -74,3 +74,179 @@ msgstr ""
 msgctxt "#30103"
 msgid "Show pulse bar under the logo"
 msgstr ""
+
+msgctxt "#30110"
+msgid "Interface"
+msgstr ""
+
+msgctxt "#30111"
+msgid "Fullscreen home"
+msgstr ""
+
+msgctxt "#30112"
+msgid "Use the fullscreen interface"
+msgstr ""
+
+msgctxt "#30113"
+msgid "Turn off to get the classic Kodi menu back"
+msgstr ""
+
+msgctxt "#30114"
+msgid "Stations per row"
+msgstr ""
+
+msgctxt "#30115"
+msgid "Genre row on home (empty = none)"
+msgstr ""
+
+msgctxt "#30116"
+msgid "Genre name, e.g. Jazz"
+msgstr ""
+
+msgctxt "#30117"
+msgid "Equalizer in the playback bar"
+msgstr ""
+
+msgctxt "#30118"
+msgid "Animated bars while listening (visual only)"
+msgstr ""
+
+msgctxt "#30120"
+msgid "Top stations"
+msgstr ""
+
+msgctxt "#30121"
+msgid "Results for"
+msgstr ""
+
+msgctxt "#30122"
+msgid "More"
+msgstr ""
+
+msgctxt "#30123"
+msgid "Genres"
+msgstr ""
+
+msgctxt "#30124"
+msgid "Settings"
+msgstr ""
+
+msgctxt "#30125"
+msgid "Background"
+msgstr ""
+
+msgctxt "#30126"
+msgid "Photo backgrounds ship with the add-on"
+msgstr ""
+
+msgctxt "#30127"
+msgid "Solid dark"
+msgstr ""
+
+msgctxt "#30128"
+msgid "RADIO letters"
+msgstr ""
+
+msgctxt "#30129"
+msgid "Studio microphone"
+msgstr ""
+
+msgctxt "#30130"
+msgid "ON AIR sign"
+msgstr ""
+
+msgctxt "#30131"
+msgid "Mixing console"
+msgstr ""
+
+msgctxt "#30132"
+msgid "Close"
+msgstr ""
+
+msgctxt "#30133"
+msgid "Configuration"
+msgstr ""
+
+msgctxt "#30134"
+msgid "No station playing"
+msgstr ""
+
+msgctxt "#30135"
+msgid "Background image missing — solid colour used"
+msgstr ""
+
+msgctxt "#30140"
+msgid "None"
+msgstr ""
+
+msgctxt "#30141"
+msgid "Jazz"
+msgstr ""
+
+msgctxt "#30142"
+msgid "Rock"
+msgstr ""
+
+msgctxt "#30143"
+msgid "Pop"
+msgstr ""
+
+msgctxt "#30144"
+msgid "Electro"
+msgstr ""
+
+msgctxt "#30145"
+msgid "Rap"
+msgstr ""
+
+msgctxt "#30146"
+msgid "Classical"
+msgstr ""
+
+msgctxt "#30147"
+msgid "Chill"
+msgstr ""
+
+msgctxt "#30148"
+msgid "Oldies"
+msgstr ""
+
+msgctxt "#30149"
+msgid "Metal"
+msgstr ""
+
+msgctxt "#30150"
+msgid "Reggae"
+msgstr ""
+
+msgctxt "#30151"
+msgid "Country"
+msgstr ""
+
+msgctxt "#30152"
+msgid "News"
+msgstr ""
+
+msgctxt "#30153"
+msgid "Sport"
+msgstr ""
+
+msgctxt "#30154"
+msgid "Kids"
+msgstr ""
+
+msgctxt "#30136"
+msgid "While listening"
+msgstr ""
+
+msgctxt "#30137"
+msgid "Bottom bar or fullscreen logo — the two are exclusive"
+msgstr ""
+
+msgctxt "#30138"
+msgid "Fullscreen station logo"
+msgstr ""
+
+msgctxt "#30139"
+msgid "Bar at the bottom"
+msgstr ""

@@ -20,7 +20,7 @@
             <top>0</top>
             <width>1280</width>
             <height>720</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>D0000000</colordiffuse>
         </control>
         <control type="image">
@@ -55,7 +55,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="480" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -64,7 +64,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="680" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -73,7 +73,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -82,7 +82,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -91,7 +91,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="360" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -100,7 +100,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="540" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -109,7 +109,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -118,7 +118,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -127,7 +127,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="420" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -136,7 +136,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="600" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -145,7 +145,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="360" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -154,7 +154,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -163,7 +163,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="540" delay="80" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -172,7 +172,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="160" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -181,7 +181,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -190,7 +190,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,12" end="100,100" center="7,90" time="480" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -199,7 +199,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="600" delay="0" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -208,7 +208,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="540" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -217,7 +217,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,30" end="100,100" center="7,90" time="480" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -226,7 +226,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="480" delay="160" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -235,7 +235,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,18" end="100,100" center="7,90" time="420" delay="400" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -244,7 +244,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="360" delay="320" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -253,7 +253,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="600" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
@@ -262,7 +262,7 @@
             <top>0</top>
             <width>14</width>
             <height>90</height>
-            <texture>white.png</texture>
+            <texture>$INFO[Window.Property(px)]</texture>
             <colordiffuse>FF1DB954</colordiffuse>
             <animation effect="zoom" start="100,25" end="100,100" center="7,90" time="680" delay="240" loop="true" reversible="true" condition="Player.Playing">Conditional</animation>
         </control>
