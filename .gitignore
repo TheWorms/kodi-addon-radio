@@ -9,3 +9,6 @@ __pycache__/
 # Système
 .DS_Store
 Thumbs.db
+
+# Rapports d'audit (livrés hors dépôt, jamais commités)
+CHECKUP.md
