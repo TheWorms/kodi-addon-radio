@@ -3,7 +3,7 @@
 # Radio
 
 <!-- version:auto -->
-**Version : 1.0.7**
+**Version : 1.2.4**
 <!-- /version:auto -->
 
 Kodi add-on to listen to **radio streams**, with a localized interface.

@@ -3,7 +3,7 @@
 # Radio — interface française
 
 <!-- version:auto -->
-**Version : 1.0.7**
+**Version : 1.2.4**
 <!-- /version:auto -->
 
 Module Kodi pour écouter des **flux radio en streaming**, avec une interface **en français**.

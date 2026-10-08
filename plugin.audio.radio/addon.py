@@ -1,4 +1,14 @@
-import sys, xbmcaddon, os, requests, xbmc, xbmcgui, urllib.request, urllib.parse, urllib.error, re, xbmcplugin, html, json, xbmcvfs, threading, time
+import json
+import os
+import sys
+import urllib.parse
+
+import requests
+import xbmc
+import xbmcaddon
+import xbmcgui
+import xbmcplugin
+import xbmcvfs
 
 addon = xbmcaddon.Addon()
 L = addon.getLocalizedString
@@ -18,9 +28,6 @@ headers = {
     'Accept-Language': 'fr-FR,fr;q=0.9',
 }
 
-save_folder = xbmcvfs.translatePath('special://home/userdata/addon_data/plugin.audio.radio')
-favourites_list = xbmcvfs.translatePath('special://home/userdata/addon_data/plugin.audio.radio/sender.txt')
-temp_list = xbmcvfs.translatePath('special://home/userdata/addon_data/plugin.audio.radio/temp.txt')
 no_image = "special://home/addons/plugin.audio.radio/no_image.jpg"
 
 def render_stations(stud_list):
@@ -52,7 +59,9 @@ def MENU():
     addDir(L(30001), '-', 3, addonicon, '', L(30001))
     addDir(L(30002), '-', 5, addonicon, '', L(30002))
 
-def LOCAL(page):
+def STATIONS(page, next_mode):
+    """LOCAL() et SEARCH() fusionnees : meme rendu (render_stations),
+    seule la page suivante differe (mode 2 = liste locale, 4 = recherche)."""
     try:
         addDir('[B]%s[/B]' % L(30003), '', '', addonicon, '', '')
         r = requests.get(page, headers=headers, timeout=5)
@@ -60,57 +69,36 @@ def LOCAL(page):
         stud_list = json_data['playables']
         count = int(json_data['totalCount'])
         render_stations(stud_list)
-        offset = page.replace('https://prod.radio-api.net/stations/local?count=25&offset=', '')
-        offset = int(offset) + 25
+        # Pagination : l'offset est extrait puis reconstruit via urllib.parse
+        # (plus robuste que l'ancienne regex sur l'URL).
+        parsed = urllib.parse.urlparse(page)
+        query = urllib.parse.parse_qs(parsed.query)
+        offset = int(query.get('offset', ['0'])[0]) + 25
         if offset < count:
-            offset = str(offset)
-            nextpage = 'https://prod.radio-api.net/stations/local?count=25&offset=' + offset + ''
-            addDir('[B]%s[/B] [B]>>>[/B]' % L(30004), nextpage, 2, addonicon, '', '')
-    except:
-        xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + L(30005) + '[/B]', L(30006), 5000, addonicon))
-
-def SEARCH(page):
-    try:
-        addDir('[B]%s[/B]' % L(30003), '', '', addonicon, '', '')
-        r = requests.get(page, headers=headers, timeout=5)
-        json_data = json.loads(r.content.decode())
-        stud_list = json_data['playables']
-        count = int(json_data['totalCount'])
-        render_stations(stud_list)
-        surl = re.findall('https(.*?)offset=', page, re.DOTALL | re.MULTILINE)[0]
-        surl = "https" + surl
-        offset = page.replace(surl + 'offset=', '')
-        offset = int(offset) + 25
-        if offset < count:
-            offset = str(offset)
-            nextpage = surl + 'offset=' + offset + ''
-            addDir('[B]%s[/B] [B]>>>[/B]' % L(30004), nextpage, 4, addonicon, '', '')
-    except:
+            query['offset'] = [str(offset)]
+            nextpage = urllib.parse.urlunparse(parsed._replace(query=urllib.parse.urlencode(query, doseq=True)))
+            addDir('[B]%s[/B] [B]>>>[/B]' % L(30004), nextpage, next_mode, addonicon, '', '')
+    except Exception as e:
+        xbmc.log('plugin.audio.radio: erreur de chargement des stations (%s) : %s'
+                 % (page, e), xbmc.LOGERROR)
         xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + L(30005) + '[/B]', L(30006), 5000, addonicon))
 
 def MYSTATIONS():
     # v1.1.0 : favoris partages avec la nouvelle interface (favorites.json,
     # migration automatique de l'ancien sender.txt)
-    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
-    import radio_ui
-    for f in radio_ui.load_favorites():
+    for f in _rui.load_favorites():
         addMy(f.get('url', ''), f.get('name', ''), f.get('logo', ''),
               '', '', '')
 
 def ADDSTATION(url, name, image):
-    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
-    import radio_ui
-    radio_ui.add_favorite(name, url, image)
+    _rui.add_favorite(name, url, image)
     xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + name + '[/B]', L(30009), 5000, addonicon))
 
 def DELSTATION(url):
-    sys.path.append(os.path.join(addondir, 'resources', 'lib'))
-    import radio_ui
-    radio_ui.remove_favorite(url)
+    _rui.remove_favorite(url)
     xbmc.executebuiltin("Container.Refresh")
 
 def addLink(link, name, image, desc, urlType, fanart):
-    ok = True
     liz = xbmcgui.ListItem(name)
     url = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=1&name=" + urllib.parse.quote_plus(name) + "&description=" + urllib.parse.quote_plus(desc) + "&iconimage=" + urllib.parse.quote_plus(image)
     add = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=6&name=" + urllib.parse.quote_plus(name) + "&image=" + urllib.parse.quote_plus(image)
@@ -121,10 +109,9 @@ def addLink(link, name, image, desc, urlType, fanart):
     contextMenuItems = []
     contextMenuItems.append((L(30007), f'RunPlugin(plugin://plugin.audio.radio/{add})'))
     liz.addContextMenuItems(contextMenuItems, replaceItems=True)
-    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz)
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz)
 
 def addMy(link, name, image, desc, urlType, fanart):
-    ok = True
     liz = xbmcgui.ListItem(name)
     url = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=1&name=" + urllib.parse.quote_plus(name) + "&description=" + urllib.parse.quote_plus(desc) + "&iconimage=" + urllib.parse.quote_plus(image)
     rem = sys.argv[0] + "?url=" + urllib.parse.quote_plus(link) + "&mode=7"
@@ -135,11 +122,10 @@ def addMy(link, name, image, desc, urlType, fanart):
     contextMenuItems = []
     contextMenuItems.append((L(30008), f'RunPlugin(plugin://plugin.audio.radio/{rem})'))
     liz.addContextMenuItems(contextMenuItems, replaceItems=True)
-    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz)
+    xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz)
 
 def addDir(name, url, mode, iconimage, fanart, description):
     u = sys.argv[0] + "?url=" + urllib.parse.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.parse.quote_plus(name) + "&iconimage=" + urllib.parse.quote_plus(iconimage) + "&fanart=" + urllib.parse.quote_plus(fanart) + "&description=" + urllib.parse.quote_plus(description)
-    ok = True
     liz = xbmcgui.ListItem(name)
     tag = liz.getMusicInfoTag()
     tag.setTitle(name)
@@ -169,60 +155,25 @@ addonfanart = _rui.background_path() or addonfanart
 
 
 def get_params():
-    param = []
+    params = {}
     paramstring = sys.argv[2]
     if len(paramstring) >= 2:
-        params = sys.argv[2]
-        cleanedparams = params.replace('?', '')
-        if (params[len(params) - 1] == '/'):
-            params = params[0:len(params) - 2]
-        pairsofparams = cleanedparams.split('&')
-        param = {}
-        for i in range(len(pairsofparams)):
-            splitparams = {}
-            splitparams = pairsofparams[i].split('=')
-            if (len(splitparams)) == 2:
-                param[splitparams[0]] = splitparams[1]
-    return param
-
-def setView(content, viewType):
-    if content:
-        xbmcplugin.setContent(int(sys.argv[1]), content)
-    if addon.getSetting('auto-view') == 'true':
-        xbmc.executebuiltin("Container.SetViewMode(%s)" % viewType)
+        cleanedparams = paramstring.replace('?', '')
+        if cleanedparams.endswith('/'):
+            cleanedparams = cleanedparams[:-1]
+        for pair in cleanedparams.split('&'):
+            if '=' in pair:
+                key, value = pair.split('=', 1)
+                params[key] = value
+    return params
 
 params = get_params()
-url = None
-name = None
-mode = None
-iconimage = None
-fanart = None
-description = None
-
-try:
-    url = urllib.parse.unquote_plus(params["url"])
-except:
-    pass
-try:
-    name = urllib.parse.unquote_plus(params["name"])
-except:
-    pass
-try:
-    iconimage = urllib.parse.unquote_plus(params["iconimage"])
-except:
-    pass
-try:
-    mode = int(params["mode"])
-except:
-    pass
-try:
-    fanart = urllib.parse.unquote_plus(params["fanart"])
-except:
-    pass
-try:
-    description = urllib.parse.unquote_plus(params["description"])
-except:
-    pass
+url = urllib.parse.unquote_plus(params['url']) if 'url' in params else None
+name = urllib.parse.unquote_plus(params['name']) if 'name' in params else None
+mode = int(params['mode']) if 'mode' in params else None
+iconimage = urllib.parse.unquote_plus(params['iconimage']) if 'iconimage' in params else None
+fanart = urllib.parse.unquote_plus(params['fanart']) if 'fanart' in params else None
+description = urllib.parse.unquote_plus(params['description']) if 'description' in params else None
 
 xbmc.log("plugin.audio.radio: mode=%s url=%s name=%s"
          % (mode, url, name), xbmc.LOGDEBUG)
@@ -239,10 +190,8 @@ if mode == None or url == None or len(url) < 1:
         # l'interface et la refermait aussitot -> boucle ouverture/retour.
         # Depuis la v1.1.4 l'interface est un WindowXML : elle remplace
         # elle-meme la fenetre courante, aucun menage prealable requis.
-        sys.path.append(os.path.join(addondir, 'resources', 'lib'))
         try:
-            import radio_ui
-            radio_ui.open_home()
+            _rui.open_home()
         except Exception as e:
             xbmc.log('plugin.audio.radio: UI error, fallback menu (%s)' % e,
                      xbmc.LOGERROR)
@@ -272,9 +221,7 @@ elif mode == 1:
 elif mode == 2:
     if not "offset" in url:
         url = "https://prod.radio-api.net/stations/local?count=25&offset=0"
-    else:
-        url = url
-    LOCAL(url)
+    STATIONS(url, 2)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 3:
     kb = xbmc.Keyboard('default', 'heading', False)
@@ -287,14 +234,15 @@ elif mode == 3:
             search = kb.getText()
             search = ('https://prod.radio-api.net/stations/search?query='
                       + urllib.parse.quote_plus(search) + '&count=25&offset=0')
-            SEARCH(search)
-        except:
-            pass
+            STATIONS(search, 4)
+        except Exception as e:
+            xbmc.log('plugin.audio.radio: recherche echouee (%s)' % e,
+                     xbmc.LOGERROR)
     else:
         MENU()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 4:
-    SEARCH(url)
+    STATIONS(url, 4)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 5:
     MYSTATIONS()
