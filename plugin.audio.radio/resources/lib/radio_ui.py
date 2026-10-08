@@ -48,7 +48,7 @@ API = "https://prod.radio-api.net/stations/"
 L = ADDON.getLocalizedString
 
 
-def log(msg, level=xbmc.LOGINFO):
+def log(msg, level=xbmc.LOGDEBUG):
     xbmc.log("plugin.audio.radio(ui): %s" % msg, level)
 
 
@@ -68,19 +68,11 @@ def s_bool(key, default=True):
     return v == "true"
 
 
-def s_str(key, default=""):
-    try:
-        v = xbmcaddon.Addon().getSetting(key)
-        return v if v else default
-    except Exception:
-        return default
-
-
 def s_int(key, default=0):
     try:
         v = xbmcaddon.Addon().getSetting(key)
         return int(v) if v != "" else default
-    except (ValueError, Exception):
+    except Exception:
         return default
 
 
@@ -104,9 +96,26 @@ def load_favorites():
         try:
             with open(FAV_JSON, "r", encoding="utf-8") as f:
                 data = json.load(f)
-            return data if isinstance(data, list) else []
-        except (ValueError, OSError):
+        except (ValueError, OSError) as e:
+            # JSON illisible : on met le fichier de cote (.corrupt) pour
+            # ne pas l'ecraser au prochain ajout, puis on repart d'une
+            # liste vide (audit v1.2.4 : favoris ecrases en silence).
+            log("favorites.json illisible : %s" % e, xbmc.LOGWARNING)
+            try:
+                os.replace(FAV_JSON, FAV_JSON + ".corrupt")
+            except OSError:
+                pass
             return []
+        if not isinstance(data, list):
+            # JSON valide mais format inattendu : meme protection.
+            log("favorites.json : format inattendu, mis de cote",
+                xbmc.LOGWARNING)
+            try:
+                os.replace(FAV_JSON, FAV_JSON + ".corrupt")
+            except OSError:
+                pass
+            return []
+        return data
     # migration depuis l'ancien format texte
     favs = []
     if os.path.exists(LEGACY_TXT):
@@ -129,7 +138,7 @@ def load_favorites():
 
 def save_favorites(favs):
     _ensure_profile()
-    tmp = FAV_JSON + ".tmp"
+    tmp = "%s.tmp.%d" % (FAV_JSON, os.getpid())
     try:
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(favs, f, ensure_ascii=False)
@@ -495,11 +504,9 @@ class RadioHome(xbmcgui.WindowXML):
 
     def onAction(self, action):
         aid = action.getId()
-        log("onAction id=%d focus=%d mode=%s"
-            % (aid, self.getFocusId(), self._mode), xbmc.LOGDEBUG)
-        if aid in ACTION_CONTEXT:
-            self._toggle_favorite_focused()
-            return
+        # Fermeture traitee EN PREMIER : getFocusId() peut lever une
+        # exception quand aucun controle n'a le focus, et la sortie de
+        # l'ecran ne doit jamais en dependre (audit v1.2.4).
         if aid in ACTION_CLOSE:
             if self._mode != "home":
                 # retour depuis une vue genre/recherche -> accueil
@@ -507,6 +514,15 @@ class RadioHome(xbmcgui.WindowXML):
                 return
             self._quit()
             return
+        if aid in ACTION_CONTEXT:
+            self._toggle_favorite_focused()
+            return
+        try:
+            fid = self.getFocusId()
+        except Exception:
+            fid = 0
+        log("onAction id=%d focus=%d mode=%s"
+            % (aid, fid, self._mode), xbmc.LOGDEBUG)
         super().onAction(action)
 
     def _refresh_settings(self):
@@ -545,7 +561,10 @@ class RadioHome(xbmcgui.WindowXML):
         self.close()
 
     def _toggle_favorite_focused(self):
-        fid = self.getFocusId()
+        try:
+            fid = self.getFocusId()
+        except Exception:
+            return
         if fid not in ROW_LIST_IDS:
             return
         try:
@@ -594,7 +613,7 @@ class RadioHome(xbmcgui.WindowXML):
         # accessibles pendant une recherche ou une exploration par genre.
         spec = [
             (L(30002), "favorites", ""),
-            (u"%s « %s »" % (L(30121), query), "api",
+            ("%s « %s »" % (L(30121), query), "api",
              base + "&count=%d&offset=0" % per_row),
             (L(30122), "api", base + "&count=%d&offset=%d" % (per_row, per_row)),
         ]
@@ -616,6 +635,9 @@ class RadioHome(xbmcgui.WindowXML):
         self.setProperty("np.playing", "1")
         if self._eq:
             self._eq.set_station(name)
+        # Barre de lecture : si le flux ne demarre jamais, un thread la
+        # repasse a l'etat repos (audit v1.2.4).
+        threading.Thread(target=self._watch_stream, daemon=True).start()
         # Mode "logo plein ecran" : on ouvre la vue cinema A LA PLACE de la
         # barre du bas (les deux modes sont exclusifs). Quitter la vue ne
         # coupe PAS la radio : on revient a l'accueil, la lecture continue.
@@ -624,6 +646,26 @@ class RadioHome(xbmcgui.WindowXML):
             % (name, mode))
         if mode == 0:
             self._open_cinema(logo, name)
+
+    def _watch_stream(self, timeout=10.0):
+        """Si le flux ne demarre jamais (URL morte, CDN HS), la barre de
+        lecture repasse a l'etat repos au lieu d'afficher "EN DIRECT"
+        pour rien (audit v1.2.4)."""
+        player = xbmc.Player()
+        monitor = xbmc.Monitor()
+        start = time.time()
+        while not monitor.abortRequested() and (time.time() - start) < timeout:
+            try:
+                if player.isPlaying():
+                    return  # lecture partie : rien a faire
+            except Exception:
+                return
+            if monitor.waitForAbort(0.5):
+                return
+        self._playing_url = ""
+        self.setProperty("np.playing", "0")
+        self.setProperty("np.name", "")
+        self.setProperty("np.logo", "")
 
     def _open_cinema(self, logo, name):
         try:

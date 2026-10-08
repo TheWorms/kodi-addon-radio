@@ -8,7 +8,6 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 import xbmcplugin
-import xbmcvfs
 
 addon = xbmcaddon.Addon()
 L = addon.getLocalizedString
