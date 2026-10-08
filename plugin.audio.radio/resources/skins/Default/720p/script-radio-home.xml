@@ -33,7 +33,7 @@
     <!-- ========================= En-tête ========================= -->
     <control type="label">
       <left>36</left><top>12</top><width>400</width><height>40</height>
-      <label>RADIO[COLOR FF5CC85C].[/COLOR]</label>
+      <label>RADIO[COLOR FF000000].[/COLOR]</label>
       <font>font27</font><textcolor>FFE8EAED</textcolor>
     </control>
 
@@ -41,7 +41,7 @@
       <left>810</left><top>16</top><width>190</width><height>36</height>
       <label>[B]$ADDON[plugin.audio.radio 30010][/B]</label>
       <font>font12</font>
-      <textcolor>FF7A828E</textcolor><focusedcolor>FF5CC85C</focusedcolor>
+      <textcolor>FF7A828E</textcolor><focusedcolor>FF000000</focusedcolor>
       <align>center</align><aligny>center</aligny>
       <texturenofocus colordiffuse="991A2029">$INFO[Window.Property(ui.solid)]</texturenofocus>
       <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>
@@ -52,7 +52,7 @@
       <left>1014</left><top>16</top><width>230</width><height>36</height>
       <label>[B]$ADDON[plugin.audio.radio 30133][/B]</label>
       <font>font12</font>
-      <textcolor>FF7A828E</textcolor><focusedcolor>FF5CC85C</focusedcolor>
+      <textcolor>FF7A828E</textcolor><focusedcolor>FF000000</focusedcolor>
       <align>center</align><aligny>center</aligny>
       <texturenofocus colordiffuse="991A2029">$INFO[Window.Property(ui.solid)]</texturenofocus>
       <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>

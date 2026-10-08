@@ -494,11 +494,15 @@ class RadioHome(xbmcgui.WindowXML):
         if control_id == BTN_SEARCH:
             self._do_search()
         elif control_id == BTN_SETTINGS:
+            # Mode d'ecoute AVANT les reglages : sert a ne rouvrir la vue
+            # plein ecran que si l'utilisateur vient vraiment de basculer
+            # barre -> logo (v1.2.6).
+            prev_nowbar = nowbar_mode()
             xbmcaddon.Addon().openSettings()
             # openSettings est bloquant : au retour, on applique
             # immediatement les nouveaux reglages (fond, mode de lecture,
             # rangee de genre) sans avoir a ressortir de l'addon.
-            self._refresh_settings()
+            self._refresh_settings(prev_nowbar)
         elif control_id == BTN_STOP:
             self._stop_playback()
 
@@ -525,7 +529,7 @@ class RadioHome(xbmcgui.WindowXML):
             % (aid, fid, self._mode), xbmc.LOGDEBUG)
         super().onAction(action)
 
-    def _refresh_settings(self):
+    def _refresh_settings(self, prev_nowbar=None):
         self._apply_background()
         # l'egaliseur suit le mode d'affichage choisi
         if nowbar_mode() == 1 and s_bool("eq.enabled", True):
@@ -536,19 +540,21 @@ class RadioHome(xbmcgui.WindowXML):
             self._eq = None
         if self._mode == "home":
             threading.Thread(target=self._load_home, daemon=True).start()
-        # Exclusivite appliquee IMMEDIATEMENT, meme en cours de lecture :
-        # - passage en mode barre -> fermer la vue plein ecran si ouverte ;
-        # - passage en mode logo pendant l'ecoute -> l'ouvrir sur-le-champ.
-        try:
-            playing = xbmc.Player().isPlaying()
-        except Exception:
-            playing = False
+        # Exclusivite : le passage en mode barre ferme immediatement la vue
+        # plein ecran si elle est ouverte. Dans l'autre sens, la vue n'est
+        # ouverte que si l'utilisateur vient VRAIMENT de basculer barre ->
+        # logo pendant cette session de reglages ET que l'addon joue sa
+        # propre station (np.playing) : enregistrer un reglage quelconque
+        # ne doit plus renvoyer de force en plein ecran avec un logo vide
+        # (placeholder "no image" a dismiss a chaque fois, v1.2.6).
         if nowbar_mode() == 1 and self._cinema is not None:
             try:
                 self._cinema.close()
             except Exception:
                 pass
-        elif nowbar_mode() == 0 and playing and self._cinema is None:
+        elif (nowbar_mode() == 0 and self._cinema is None
+                and prev_nowbar == 1
+                and self.getProperty("np.playing") == "1"):
             self._open_cinema(self.getProperty("np.logo"),
                               self.getProperty("np.name"))
 
