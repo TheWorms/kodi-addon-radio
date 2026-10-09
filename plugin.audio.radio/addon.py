@@ -206,8 +206,12 @@ elif mode == 99:
 elif mode == 1:
     listitem = xbmcgui.ListItem(name)
     listitem.setArt({'icon': iconimage, 'thumb': iconimage})
-    if get_bool_setting('cinema.enabled', True):
-        xbmc.Player().play(url, listitem)
+    # windowed : ne pas basculer Kodi en plein ecran au demarrage du son
+    # (fenetre de visualisation, reglage musicfiles.selectaction). La vue
+    # logo de la station est l'affichage d'ecoute par defaut (v1.2.13).
+    cinema = get_bool_setting('cinema.enabled', True)
+    xbmc.Player().play(url, listitem, True)
+    if cinema:
         try:
             w = RadioCinema('script-radio-cinema.xml', addondir, 'Default', '720p')
             w.set_data(iconimage, name, get_bool_setting('cinema.pulsebar', True))
@@ -215,8 +219,6 @@ elif mode == 1:
             del w
         except Exception as e:
             xbmc.log('plugin.audio.radio cinema error: %s' % str(e), xbmc.LOGERROR)
-    else:
-        xbmc.Player().play(url, listitem)
 elif mode == 2:
     if not "offset" in url:
         url = "https://prod.radio-api.net/stations/local?count=25&offset=0"

@@ -208,7 +208,7 @@
     <control type="list" id="230">
       <left>28</left><top>512</top><width>1224</width><height>180</height>
       <orientation>horizontal</orientation>
-      <onup>220</onup><ondown>310</ondown>
+      <onup>220</onup><ondown>110</ondown>
       <scrolltime tween="quadratic" easing="out">220</scrolltime>
       <itemlayout width="153" height="180">
         <!-- Station non selectionnee : le logo est assombri directement
@@ -269,53 +269,9 @@
       </focusedlayout>
     </control>
 
-    <!-- ==================== Barre de lecture ==================== -->
-    <control type="group">
-      <visible>String.IsEqual(Window.Property(ui.nowbar),1)</visible>
-      <control type="image">
-        <left>0</left><top>648</top><width>1280</width><height>72</height>
-        <texture colordiffuse="F21A2029">$INFO[Window.Property(ui.solid)]</texture>
-      </control>
-      <control type="image">
-        <left>0</left><top>647</top><width>1280</width><height>1</height>
-        <texture colordiffuse="FF2A3140">$INFO[Window.Property(ui.solid)]</texture>
-      </control>
-      <control type="image">
-        <left>36</left><top>656</top><width>56</width><height>56</height>
-        <texture background="true">$INFO[Window.Property(np.logo)]</texture>
-        <aspectratio>keep</aspectratio>
-      </control>
-      <control type="label">
-        <left>106</left><top>656</top><width>400</width><height>26</height>
-        <label>$INFO[Window.Property(np.name)]</label>
-        <font>font13</font><textcolor>FFE8EAED</textcolor>
-      </control>
-      <control type="label">
-        <left>106</left><top>684</top><width>400</width><height>20</height>
-        <label>[COLOR FF5CC85C]● EN DIRECT[/COLOR]</label>
-        <font>font10</font>
-        <visible>String.IsEqual(Window.Property(np.playing),1)</visible>
-        <animation effect="fade" start="100" end="35" time="800" pulse="true" condition="true">Conditional</animation>
-      </control>
-      <control type="label">
-        <left>106</left><top>662</top><width>500</width><height>26</height>
-        <label>$ADDON[plugin.audio.radio 30134]</label>
-        <font>font12</font><textcolor>FF7A828E</textcolor>
-        <visible>!String.IsEqual(Window.Property(np.playing),1)</visible>
-      </control>
-      <!-- Zone égaliseur : barres ajoutées par Python (addControls) -->
-      <control type="button" id="310">
-        <left>1100</left><top>664</top><width>144</width><height>40</height>
-        <label>■  Stop</label>
-        <font>font12</font>
-        <textcolor>FFC7CDD7</textcolor><focusedcolor>FFFFFFFF</focusedcolor>
-        <align>center</align><aligny>center</aligny>
-        <texturenofocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturenofocus>
-        <texturefocus colordiffuse="FF242B37">$INFO[Window.Property(ui.solid)]</texturefocus>
-        <onup>230</onup><ondown>110</ondown>
-        <visible>String.IsEqual(Window.Property(np.playing),1)</visible>
-      </control>
-    </control>
-
+    <!-- (v1.2.13) Barre de lecture, ligne et egaliseur retires :
+         pendant l'ecoute, la vue logo plein ecran de la station
+         remplace la barre (retour au menu = lecture qui continue,
+         arret par la touche Stop de Kodi). -->
   </controls>
 </window>

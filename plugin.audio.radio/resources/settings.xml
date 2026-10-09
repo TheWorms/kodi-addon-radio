@@ -52,29 +52,6 @@
                         <dependency type="enable" setting="ui.fullscreen" operator="is">true</dependency>
                     </dependencies>
                 </setting>
-                <setting id="ui.nowplaying" type="integer" label="30136" help="30137">
-                    <level>0</level>
-                    <default>1</default>
-                    <constraints>
-                        <options>
-                            <option label="30138">0</option>
-                            <option label="30139">1</option>
-                        </options>
-                    </constraints>
-                    <control type="list" format="integer"/>
-                    <dependencies>
-                        <dependency type="enable" setting="ui.fullscreen" operator="is">true</dependency>
-                    </dependencies>
-                </setting>
-                <setting id="eq.enabled" type="boolean" label="30117" help="30118">
-                    <level>0</level>
-                    <default>true</default>
-                    <control type="toggle"/>
-                    <dependencies>
-                        <dependency type="enable" setting="ui.fullscreen" operator="is">true</dependency>
-                        <dependency type="visible" setting="ui.nowplaying" operator="is">1</dependency>
-                    </dependencies>
-                </setting>
             </group>
         </category>
         <category id="playback" label="30100">

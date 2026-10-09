@@ -76,6 +76,27 @@ def s_int(key, default=0):
         return default
 
 
+# Prefixe des proprietes d'etat de lecture posees sur la HomeWindow
+# (fenetre 10000) : elle survit aux fermetures de RadioHome, contrairement
+# a l'etat du module et aux proprietes de la fenetre elle-meme.
+NPW_PREFIX = "radio.np."
+
+
+def _np_persist(playing, name="", logo="", url=""):
+    """Etat de lecture partage via la HomeWindow. Fermer la fenetre
+    n'arrete pas la radio : sans cette memoire, rouvrir l'addon pendant
+    une ecoute affichait une barre au repos alors que le son tournait
+    (v1.2.11)."""
+    try:
+        home = xbmcgui.Window(10000)
+        home.setProperty(NPW_PREFIX + "playing", "1" if playing else "0")
+        home.setProperty(NPW_PREFIX + "name", name or "")
+        home.setProperty(NPW_PREFIX + "logo", logo or "")
+        home.setProperty(NPW_PREFIX + "url", url or "")
+    except Exception:
+        pass
+
+
 # ------------------------------------------------------------------ favoris --
 FAV_JSON = os.path.join(PROFILE, "favorites.json")
 LEGACY_TXT = os.path.join(PROFILE, "sender.txt")
@@ -217,17 +238,35 @@ def background_path():
     return path if os.path.exists(path) else ""
 
 
-def nowbar_mode():
-    """0 = logo plein ecran (vue cinema), 1 = barre en bas. Exclusif."""
-    return 1 if s_int("ui.nowplaying", 1) == 1 else 0
-
-
 def genre_setting():
     """Genre de la rangee d'accueil, choisi dans une liste (0 = aucune)."""
     idx = s_int("ui.genre_row", 1)
     if 1 <= idx <= len(GENRES):
         return GENRES[idx - 1]
     return ""
+
+# PNG 1x1 RGBA (68 octets) — valeur de REFERENCE du fichier white.png.
+_WHITE_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4"
+    "2mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=")
+
+
+def _png_sain(path):
+    """True si white.png existe ET semble valide (signature PNG, taille
+    attendue). Un fichier corrompu (ecriture interrompue par une coupure
+    de courant) rendait TOUS les aplats invisibles -- dont la barre de
+    lecture -- et Kodi logguait "Load ... failed" a chaque frame, sans
+    jamais se reparer puisque la presence du fichier suffisait a
+    l'ancienne garde. La texture doit donc etre valide, pas seulement
+    presente (v1.2.11)."""
+    try:
+        with open(path, "rb") as f:
+            data = f.read()
+    except OSError:
+        return False
+    return (len(data) == len(_WHITE_PNG)
+            and data[:8] == b"\x89PNG\r\n\x1a\n")
+
 
 def white_px():
     """Chemin d'une texture blanche TOUJOURS disponible.
@@ -239,12 +278,15 @@ def white_px():
     l'utilise pour TOUS les aplats (fond, voiles, barres, boutons)."""
     _ensure_profile()
     path = os.path.join(PROFILE, "white.png")
-    if not os.path.exists(path):
+    if not _png_sain(path):
         try:
-            with open(path, "wb") as f:
-                f.write(base64.b64decode(
-                    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4"
-                    "2mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="))
+            # ecriture atomique (tmp puis rename) : meme une coupure de
+            # courant au pire moment ne laisse plus un fichier a moitie
+            # ecrit (v1.2.11).
+            tmp = "%s.tmp.%d" % (path, os.getpid())
+            with open(tmp, "wb") as f:
+                f.write(_WHITE_PNG)
+            os.replace(tmp, path)
         except OSError:
             shipped = os.path.join(ADDON_PATH, "resources", "skins",
                                    "Default", "media", "white.png")
@@ -252,76 +294,15 @@ def white_px():
     return path
 
 
-# ------------------------------------------------------------- égaliseur ----
-class _EqUpdater(threading.Thread):
-    """Anime les barres (setHeight) tant que la lecture tourne.
-    Pseudo-réactif : graine par station, trois zones (basses/médiums/aigus)
-    aux cadences différentes. Arrêt par Event, jamais d'accès après stop."""
-    TICK = 0.09
-
-    def __init__(self, bars, base_y, max_h):
-        super().__init__(daemon=True)
-        self._bars = bars
-        self._base_y = base_y
-        self._max_h = max_h
-        self._stop = threading.Event()
-        self._t = 0.0
-        self._seed = 1
-
-    def set_station(self, name):
-        h = 0
-        for c in (name or "x"):
-            h = (h * 31 + ord(c)) & 0x7FFFFFFF
-        self._seed = h or 1
-
-    def stop(self):
-        self._stop.set()
-
-    def run(self):
-        import math
-        player = xbmc.Player()
-        n = len(self._bars)
-        while not self._stop.is_set():
-            try:
-                playing = player.isPlaying()
-            except Exception:
-                playing = False
-            self._t += self.TICK
-            for idx, bar in enumerate(self._bars):
-                if self._stop.is_set():
-                    return
-                try:
-                    if not playing:
-                        h = 2
-                    else:
-                        zone = 0.6 if idx < n // 3 else (
-                            1.6 if idx < 2 * n // 3 else 2.6)
-                        phase = ((self._seed >> (idx % 24)) & 0xFF) / 40.0
-                        amp = 0.35 + (((self._seed >> (idx % 16)) & 0x3F) / 63.0) * 0.6
-                        v = abs(math.sin(self._t * zone + phase)) * amp
-                        h = max(2, int(self._max_h * v))
-                    bar.setHeight(h)
-                    bar.setPosition(bar.getX(), self._base_y - h)
-                except Exception:
-                    return  # contrôle disparu (fenêtre fermée) -> sortie propre
-            if self._stop.wait(self.TICK):
-                return
-
-
 # ------------------------------------------------------------- la fenêtre ---
 ROW_LIST_IDS = (210, 220, 230)
 BTN_SEARCH, BTN_SETTINGS = 110, 112
-BTN_STOP = 310
 # Fermeture : large filet d'ids selon les telecommandes/claviers --
 # PARENT_DIR(9), PREVIOUS_MENU(10), NAV_BACK(92), STOP(13),
 # BACKSPACE(110 clavier), MENU(117 gere a part), plus les codes remote
 # generiques renvoyes par certaines box (216, 247, 275).
 ACTION_CLOSE = (9, 10, 92, 13, 216, 247, 275)
 ACTION_CONTEXT = (117,)
-
-EQ_BARS = 40
-EQ_X0, EQ_W, EQ_GAP = 560, 8, 5
-EQ_BASE_Y, EQ_MAX_H = 710, 54
 
 
 class RadioHome(xbmcgui.WindowXML):
@@ -341,7 +322,6 @@ class RadioHome(xbmcgui.WindowXML):
         # plus d'un fichier media qui pourrait manquer.
         solid = white_px()
         self.setProperty("ui.solid", solid)
-        self.setProperty("ui.nowbar", "1" if nowbar_mode() == 1 else "0")
         path = background_path()
         if path:
             self.setProperty("ui.bg", path)
@@ -361,34 +341,33 @@ class RadioHome(xbmcgui.WindowXML):
         self._mode = "home"
         self._cinema = None
         self._apply_background()
-        self._eq = None
-        self._eq_bars = []
         self._playing_url = ""
         self.setProperty("np.playing", "0")
         self.setProperty("np.name", "")
         self.setProperty("np.logo", "")
-        if s_bool("eq.enabled", True) and nowbar_mode() == 1:
-            self._build_eq()
+        self._restore_np()
         threading.Thread(target=self._load_home, daemon=True).start()
 
-    # ---------- construction ----------
-    def _build_eq(self):
-        px = white_px()
-        if not px:
-            return
-        for i in range(EQ_BARS):
-            bar = xbmcgui.ControlImage(
-                EQ_X0 + i * (EQ_W + EQ_GAP), EQ_BASE_Y - 2, EQ_W, 2,
-                px, colorDiffuse="FFFFB454")
-            self._eq_bars.append(bar)
+    def _restore_np(self):
+        """Si la radio joue deja (fenetre fermee puis rouverte), l'etat
+        interne doit refleter la lecture REELLE. On ne
+        restaure que si le flux memoire dans la HomeWindow est bien celui
+        que le lecteur est en train de jouer (v1.2.11)."""
         try:
-            self.addControls(self._eq_bars)
+            home = xbmcgui.Window(10000)
+            url = home.getProperty(NPW_PREFIX + "url")
+            if (home.getProperty(NPW_PREFIX + "playing") == "1" and url
+                    and xbmc.Player().isPlaying()
+                    and xbmc.Player().getPlayingFile() == url):
+                name = home.getProperty(NPW_PREFIX + "name") or ""
+                self.setProperty("np.playing", "1")
+                self.setProperty("np.name", name)
+                self.setProperty("np.logo",
+                                 home.getProperty(NPW_PREFIX + "logo") or "")
+                self._playing_url = url
+                log("restauration lecture : %r joue deja" % name)
         except Exception as e:
-            log("addControls eq: %s" % e, xbmc.LOGWARNING)
-            self._eq_bars = []
-            return
-        self._eq = _EqUpdater(self._eq_bars, EQ_BASE_Y, EQ_MAX_H)
-        self._eq.start()
+            log("restauration np : %s" % e, xbmc.LOGWARNING)
 
     def _rows_spec_home(self):
         per_row = STATIONS_PER_ROW
@@ -494,17 +473,11 @@ class RadioHome(xbmcgui.WindowXML):
         if control_id == BTN_SEARCH:
             self._do_search()
         elif control_id == BTN_SETTINGS:
-            # Mode d'ecoute AVANT les reglages : sert a ne rouvrir la vue
-            # plein ecran que si l'utilisateur vient vraiment de basculer
-            # barre -> logo (v1.2.6).
-            prev_nowbar = nowbar_mode()
             xbmcaddon.Addon().openSettings()
             # openSettings est bloquant : au retour, on applique
-            # immediatement les nouveaux reglages (fond, mode de lecture,
-            # rangee de genre) sans avoir a ressortir de l'addon.
-            self._refresh_settings(prev_nowbar)
-        elif control_id == BTN_STOP:
-            self._stop_playback()
+            # immediatement les nouveaux reglages (fond, rangee de genre)
+            # sans avoir a ressortir de l'addon.
+            self._refresh_settings()
 
     def onAction(self, action):
         aid = action.getId()
@@ -529,41 +502,13 @@ class RadioHome(xbmcgui.WindowXML):
             % (aid, fid, self._mode), xbmc.LOGDEBUG)
         super().onAction(action)
 
-    def _refresh_settings(self, prev_nowbar=None):
+    def _refresh_settings(self):
         self._apply_background()
-        # l'egaliseur suit le mode d'affichage choisi
-        if nowbar_mode() == 1 and s_bool("eq.enabled", True):
-            if not self._eq:
-                self._build_eq()
-        elif self._eq:
-            self._eq.stop()
-            self._eq = None
         if self._mode == "home":
             threading.Thread(target=self._load_home, daemon=True).start()
-        # Exclusivite : le passage en mode barre ferme immediatement la vue
-        # plein ecran si elle est ouverte. Dans l'autre sens, la vue n'est
-        # ouverte que si l'utilisateur vient VRAIMENT de basculer barre ->
-        # logo pendant cette session de reglages ET que l'addon joue sa
-        # propre station (np.playing) : enregistrer un reglage quelconque
-        # ne doit plus renvoyer de force en plein ecran avec un logo vide
-        # (placeholder "no image" a dismiss a chaque fois, v1.2.6).
-        if nowbar_mode() == 1 and self._cinema is not None:
-            try:
-                self._cinema.close()
-            except Exception:
-                pass
-        elif (nowbar_mode() == 0 and self._cinema is None
-                and prev_nowbar == 1
-                and self.getProperty("np.playing") == "1"):
-            self._open_cinema(self.getProperty("np.logo"),
-                              self.getProperty("np.name"))
 
     def _quit(self):
-        """Sortie unique et sure : arrete le thread eq puis ferme."""
-        try:
-            self._teardown()
-        except Exception:
-            pass
+        """Sortie unique et sure : fermeture de la fenetre."""
         self.close()
 
     def _toggle_favorite_focused(self):
@@ -634,29 +579,30 @@ class RadioHome(xbmcgui.WindowXML):
         li.setArt({"thumb": logo, "icon": logo})
         tag = li.getMusicInfoTag()
         tag.setTitle(name)
-        xbmc.Player().play(stream, li)
+        # windowed : ne jamais basculer Kodi en plein ecran au demarrage
+        # du son (fenetre de visualisation, ouvre quand le reglage Kodi
+        # musicfiles.selectaction est actif) -- sinon l'ecran visuel
+        # remplace l'interface et SA BARRE des le premier clic (v1.2.11).
+        xbmc.Player().play(stream, li, True)
         self._playing_url = stream
         self.setProperty("np.name", name)
         self.setProperty("np.logo", logo or "")
         self.setProperty("np.playing", "1")
-        if self._eq:
-            self._eq.set_station(name)
-        # Barre de lecture : si le flux ne demarre jamais, un thread la
-        # repasse a l'etat repos (audit v1.2.4).
+        _np_persist(True, name, logo or "", stream)
+        # Si le flux ne demarre jamais (URL morte, CDN HS), un thread
+        # repasse l'etat interne au repos (audit v1.2.4).
         threading.Thread(target=self._watch_stream, daemon=True).start()
-        # Mode "logo plein ecran" : on ouvre la vue cinema A LA PLACE de la
-        # barre du bas (les deux modes sont exclusifs). Quitter la vue ne
-        # coupe PAS la radio : on revient a l'accueil, la lecture continue.
-        mode = nowbar_mode()
-        log("lecture %r — mode ecoute=%s (0=logo plein ecran, 1=barre)"
-            % (name, mode))
-        if mode == 0:
+        # Ecoute : la vue logo plein ecran de la station est l'affichage
+        # par defaut (v1.2.13). Quitter la vue ne coupe PAS la radio :
+        # on revient a l'accueil, la lecture continue.
+        log("lecture %r" % name)
+        if s_bool("cinema.enabled", True):
             self._open_cinema(logo, name)
 
     def _watch_stream(self, timeout=10.0):
-        """Si le flux ne demarre jamais (URL morte, CDN HS), la barre de
-        lecture repasse a l'etat repos au lieu d'afficher "EN DIRECT"
-        pour rien (audit v1.2.4)."""
+        """Si le flux ne demarre jamais (URL morte, CDN HS), l'etat
+        interne repasse au repos au lieu d'annoncer une lecture
+        fantome (audit v1.2.4)."""
         player = xbmc.Player()
         monitor = xbmc.Monitor()
         start = time.time()
@@ -672,6 +618,7 @@ class RadioHome(xbmcgui.WindowXML):
         self.setProperty("np.playing", "0")
         self.setProperty("np.name", "")
         self.setProperty("np.logo", "")
+        _np_persist(False)
 
     def _open_cinema(self, logo, name):
         try:
@@ -691,27 +638,6 @@ class RadioHome(xbmcgui.WindowXML):
             xbmcgui.Dialog().notification("Radio", str(e),
                                           xbmcgui.NOTIFICATION_WARNING, 5000)
 
-    def _stop_playback(self):
-        try:
-            xbmc.Player().stop()
-        except Exception:
-            pass
-        self._playing_url = ""
-        self.setProperty("np.playing", "0")
-        self.setProperty("np.name", "")
-        self.setProperty("np.logo", "")
-
-    def _teardown(self):
-        if self._eq:
-            self._eq.stop()
-            if self._eq.is_alive():
-                try:
-                    self._eq.join(1.0)
-                except RuntimeError:
-                    pass
-            self._eq = None
-
-
 GUARD_PROP = "radio.ui.open"
 CLOSED_PROP = "radio.ui.closed_at"
 REOPEN_GRACE = 3.0   # secondes
@@ -721,9 +647,22 @@ def open_home():
     home = xbmcgui.Window(10000)
 
     # Garde 1 : interface deja ouverte -> ne pas empiler une 2e fenetre.
-    if home.getProperty(GUARD_PROP) == "1":
-        log("UI deja ouverte, relance ignoree")
-        return
+    # La garde vaut l'ID de la fenetre : si la fenetre n'existe plus
+    # (interprateur mort sans passage par le finally, crash de Kodi), la
+    # garde est PERIMEE et se repare toute seule. Une garde bloquee
+    # rendait l'addon impossible a lancer jusqu'au redemarrage de Kodi
+    # (quatre lances muets constates sur la box le 2026-10-09, v1.2.11).
+    garde = home.getProperty(GUARD_PROP)
+    if garde:
+        try:
+            wid = int(garde)
+        except ValueError:
+            wid = 0
+        if wid and xbmc.getCondVisibility("Window.IsVisible(%d)" % wid):
+            log("UI deja ouverte, relance ignoree")
+            return
+        log("garde perimee (fenetre %s) -> nettoyage" % garde, xbmc.LOGWARNING)
+        home.clearProperty(GUARD_PROP)
 
     # Garde 2 (anti-boucle) : apres une fermeture, le retour a l'accueil
     # peut faire relancer l'addon par un widget ou le container. Toute
@@ -737,9 +676,15 @@ def open_home():
             % (time.time() - closed_at))
         return
 
-    home.setProperty(GUARD_PROP, "1")
+    # "pending" pendant la construction (anti double-entree), remplace
+    # par l'ID reel des que la fenetre existe.
+    home.setProperty(GUARD_PROP, "pending")
     try:
         win = RadioHome("script-radio-home.xml", ADDON_PATH, "Default", "720p")
+        try:
+            home.setProperty(GUARD_PROP, "%d" % win.getId())
+        except Exception:
+            home.setProperty(GUARD_PROP, "1")
         win.doModal()
         del win
     finally:
