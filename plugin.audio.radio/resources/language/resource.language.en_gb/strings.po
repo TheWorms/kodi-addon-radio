@@ -91,24 +91,12 @@ msgctxt "#30113"
 msgid "Turn off to get the classic Kodi menu back"
 msgstr ""
 
-msgctxt "#30114"
-msgid "Stations per row"
-msgstr ""
-
 msgctxt "#30115"
 msgid "Genre row on home (empty = none)"
 msgstr ""
 
 msgctxt "#30116"
 msgid "Genre name, e.g. Jazz"
-msgstr ""
-
-msgctxt "#30117"
-msgid "Equalizer in the playback bar"
-msgstr ""
-
-msgctxt "#30118"
-msgid "Animated bars while listening (visual only)"
 msgstr ""
 
 msgctxt "#30120"
@@ -121,14 +109,6 @@ msgstr ""
 
 msgctxt "#30122"
 msgid "More"
-msgstr ""
-
-msgctxt "#30123"
-msgid "Genres"
-msgstr ""
-
-msgctxt "#30124"
-msgid "Settings"
 msgstr ""
 
 msgctxt "#30125"
@@ -159,16 +139,8 @@ msgctxt "#30131"
 msgid "Mixing console"
 msgstr ""
 
-msgctxt "#30132"
-msgid "Close"
-msgstr ""
-
 msgctxt "#30133"
 msgid "Configuration"
-msgstr ""
-
-msgctxt "#30134"
-msgid "No station playing"
 msgstr ""
 
 msgctxt "#30135"
@@ -235,18 +207,6 @@ msgctxt "#30154"
 msgid "Kids"
 msgstr ""
 
-msgctxt "#30136"
-msgid "While listening"
-msgstr ""
-
-msgctxt "#30137"
-msgid "Bottom bar or fullscreen logo — the two are exclusive"
-msgstr ""
-
-msgctxt "#30138"
-msgid "Fullscreen station logo"
-msgstr ""
-
-msgctxt "#30139"
-msgid "Bar at the bottom"
-msgstr ""
+msgctxt "#30160"
+msgid "%d stations"
+msgstr "%d stations"

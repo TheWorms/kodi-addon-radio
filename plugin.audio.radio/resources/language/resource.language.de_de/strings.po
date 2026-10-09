@@ -91,10 +91,6 @@ msgctxt "#30113"
 msgid "Turn off to get the classic Kodi menu back"
 msgstr "Deaktivieren, um das klassische Kodi-Menü zu verwenden"
 
-msgctxt "#30114"
-msgid "Stations per row"
-msgstr "Sender pro Reihe"
-
 msgctxt "#30115"
 msgid "Genre row on home (empty = none)"
 msgstr "Genre-Reihe auf der Startseite (leer = keine)"
@@ -102,14 +98,6 @@ msgstr "Genre-Reihe auf der Startseite (leer = keine)"
 msgctxt "#30116"
 msgid "Genre name, e.g. Jazz"
 msgstr "Genrename, z. B. Jazz"
-
-msgctxt "#30117"
-msgid "Equalizer in the playback bar"
-msgstr "Equalizer in der Wiedergabeleiste"
-
-msgctxt "#30118"
-msgid "Animated bars while listening (visual only)"
-msgstr "Animierte Balken beim Hören (nur visuell)"
 
 msgctxt "#30120"
 msgid "Top stations"
@@ -122,14 +110,6 @@ msgstr "Ergebnisse für"
 msgctxt "#30122"
 msgid "More"
 msgstr "Weitere"
-
-msgctxt "#30123"
-msgid "Genres"
-msgstr "Genres"
-
-msgctxt "#30124"
-msgid "Settings"
-msgstr "Einstellungen"
 
 msgctxt "#30125"
 msgid "Background"
@@ -159,17 +139,9 @@ msgctxt "#30131"
 msgid "Mixing console"
 msgstr "Mischpult"
 
-msgctxt "#30132"
-msgid "Close"
-msgstr "Schließen"
-
 msgctxt "#30133"
 msgid "Configuration"
 msgstr "Konfiguration"
-
-msgctxt "#30134"
-msgid "No station playing"
-msgstr "Kein Sender aktiv"
 
 msgctxt "#30135"
 msgid "Background image missing — solid colour used"
@@ -235,18 +207,6 @@ msgctxt "#30154"
 msgid "Kids"
 msgstr "Kinder"
 
-msgctxt "#30136"
-msgid "While listening"
-msgstr "Beim Hören"
-
-msgctxt "#30137"
-msgid "Bottom bar or fullscreen logo — the two are exclusive"
-msgstr "Leiste unten oder Vollbild-Logo — sich gegenseitig ausschließend"
-
-msgctxt "#30138"
-msgid "Fullscreen station logo"
-msgstr "Sender-Logo im Vollbild"
-
-msgctxt "#30139"
-msgid "Bar at the bottom"
-msgstr "Leiste am unteren Rand"
+msgctxt "#30160"
+msgid "%d stations"
+msgstr "%d Sender"

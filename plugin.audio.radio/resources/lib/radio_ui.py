@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
+# Copyright (C) 2026 TheWorms. Interface plein ecran, favoris JSON et
+# vue cinema derives du module « Radio » de Publish3r (GPL v2) -- voir
+# LICENSE.txt pour la licence et les credits d'origine.
 """
 radio_ui.py — interface plein écran "façon radio.fr" (v1.1.0) + favoris JSON.
 
-Architecture calquée sur les patterns éprouvés du fork SoundCloud :
-  - WindowXMLDialog + listes horizontales alimentées par un thread de
-    chargement (une garde try/except PAR rangée : une rangée en échec
-    n'empêche pas les autres de s'afficher) ;
-  - égaliseur pseudo-réactif dans la barre de lecture : Kodi n'expose pas
-    l'audio aux addons, les barres sont animées par un thread (setHeight)
-    avec une graine dérivée du nom de la station — même approche que le
-    visualiseur waveform SoundCloud ;
-  - le thread écrit uniquement sur des contrôles ajoutés par addControl
-    et s'arrête via un Event + join court avant la fermeture.
+Architecture :
+  - WindowXML (fond opaque natif) + rangées horizontales remplies par un
+    thread de chargement ; une garde try/except PAR rangée : une rangée
+    en échec n'empêche pas les autres de s'afficher ;
+  - jeton de génération sur les remplissages : seul le chargement le
+    plus récent écrit dans les rangées (retour pressé deux fois,
+    recherche pendant le chargement de l'accueil) ;
+  - les threads testent un Event posé à la fermeture : plus aucun accès
+    à la fenêtre après sa destruction.
 
-Favoris : nouveau format favorites.json (liste de {name,url,logo}).
+Favoris : format favorites.json (liste de {name,url,logo}).
 Migration automatique et unique depuis l'ancien sender.txt
 (###NAME###...###URL###...###LOGO###...###) ; l'ancien fichier est
 conservé en sender.txt.bak après migration.
@@ -25,6 +27,7 @@ import os
 import re
 import threading
 import time
+import urllib.parse
 
 import requests
 import xbmc
@@ -93,8 +96,8 @@ def _np_persist(playing, name="", logo="", url=""):
         home.setProperty(NPW_PREFIX + "name", name or "")
         home.setProperty(NPW_PREFIX + "logo", logo or "")
         home.setProperty(NPW_PREFIX + "url", url or "")
-    except Exception:
-        pass
+    except Exception as e:
+        log("np persist impossible : %s" % e, xbmc.LOGWARNING)
 
 
 # ------------------------------------------------------------------ favoris --
@@ -106,8 +109,8 @@ def _ensure_profile():
     if not os.path.isdir(PROFILE):
         try:
             os.makedirs(PROFILE)
-        except OSError:
-            pass
+        except OSError as e:
+            log("creation du profil impossible : %s" % e, xbmc.LOGWARNING)
 
 
 def load_favorites():
@@ -124,8 +127,8 @@ def load_favorites():
             log("favorites.json illisible : %s" % e, xbmc.LOGWARNING)
             try:
                 os.replace(FAV_JSON, FAV_JSON + ".corrupt")
-            except OSError:
-                pass
+            except OSError as e:
+                log("mise de cote impossible : %s" % e, xbmc.LOGWARNING)
             return []
         if not isinstance(data, list):
             # JSON valide mais format inattendu : meme protection.
@@ -133,16 +136,24 @@ def load_favorites():
                 xbmc.LOGWARNING)
             try:
                 os.replace(FAV_JSON, FAV_JSON + ".corrupt")
-            except OSError:
-                pass
+            except OSError as e:
+                log("mise de cote impossible : %s" % e, xbmc.LOGWARNING)
             return []
-        return data
+        # Entrees invalides (edition manuelle, fichier abime) : ecartees
+        # au chargement, is_favorite/add/remove ne plantent plus (audit
+        # v1.2.14).
+        kept = [e for e in data if isinstance(e, dict)]
+        if len(kept) != len(data):
+            log("favoris invalides ecartes : %d entree(s)"
+                % (len(data) - len(kept)), xbmc.LOGWARNING)
+        return kept
     # migration depuis l'ancien format texte
     favs = []
     if os.path.exists(LEGACY_TXT):
         try:
-            raw = open(LEGACY_TXT, "r", encoding="utf-8",
-                       errors="ignore").read()
+            with open(LEGACY_TXT, "r", encoding="utf-8",
+                      errors="ignore") as f:
+                raw = f.read()
             for name, url, logo in re.compile(
                     r"###NAME###(.+?)###URL###(.+?)###LOGO###(.+?)###"
             ).findall(raw):
@@ -194,6 +205,7 @@ def remove_favorite(url):
 def fetch_stations(url):
     """Retourne (liste playables, totalCount). Garde par appel."""
     r = requests.get(url, headers=HEADERS, timeout=5)
+    r.raise_for_status()
     data = json.loads(r.content.decode())
     return data.get("playables") or [], int(data.get("totalCount") or 0)
 
@@ -298,9 +310,9 @@ def white_px():
 ROW_LIST_IDS = (210, 220, 230)
 BTN_SEARCH, BTN_SETTINGS = 110, 112
 # Fermeture : large filet d'ids selon les telecommandes/claviers --
-# PARENT_DIR(9), PREVIOUS_MENU(10), NAV_BACK(92), STOP(13),
-# BACKSPACE(110 clavier), MENU(117 gere a part), plus les codes remote
-# generiques renvoyes par certaines box (216, 247, 275).
+# PARENT_DIR(9), PREVIOUS_MENU(10), NAV_BACK(92), STOP(13), MENU(117
+# gere a part), plus les codes remote generiques renvoyes par
+# certaines box (216, 247, 275).
 ACTION_CLOSE = (9, 10, 92, 13, 216, 247, 275)
 ACTION_CONTEXT = (117,)
 
@@ -340,6 +352,11 @@ class RadioHome(xbmcgui.WindowXML):
             % xbmcaddon.Addon().getAddonInfo("version"))
         self._mode = "home"
         self._cinema = None
+        # Course entre chargements et threads survivant a la fenetre
+        # (audit v1.2.14) : jeton de generation, verrou, Event d'arret.
+        self._fill_lock = threading.Lock()
+        self._fill_gen = 0
+        self._closed = threading.Event()
         self._apply_background()
         self._playing_url = ""
         self.setProperty("np.playing", "0")
@@ -379,7 +396,7 @@ class RadioHome(xbmcgui.WindowXML):
         if genre:
             rows.append((genre, "api",
                          API + "search?query=%s&count=%d&offset=0"
-                         % (requests.utils.quote(genre), per_row)))
+                         % (urllib.parse.quote(genre), per_row)))
         else:
             # Pas de rangee genre -> on tente les "top". L'endpoint varie
             # selon l'API : candidats essayes dans l'ordre, rangee masquee
@@ -396,7 +413,18 @@ class RadioHome(xbmcgui.WindowXML):
         self._fill_rows(self._rows_spec_home())
 
     def _fill_rows(self, spec):
+        # Jeton de generation : si un autre remplissage demarre pendant
+        # celui-ci (retour presse deux fois, recherche pendant le
+        # chargement de l'accueil), le plus ancien s'arrete sans ecrire
+        # -- fini les rangees melangees (audit v1.2.14).
+        with self._fill_lock:
+            self._fill_gen += 1
+            gen = self._fill_gen
         for idx, list_id in enumerate(ROW_LIST_IDS):
+            if gen != self._fill_gen or self._closed.is_set():
+                # un remplissage plus recent a pris la main ou la fenetre
+                # est fermee : on ne touche plus aux controles
+                return
             title, kind, url = spec[idx] if idx < len(spec) else ("", "", "")
             self.setProperty("row%d.title" % idx, title)
             self.setProperty("row%d.count" % idx, "")
@@ -422,10 +450,16 @@ class RadioHome(xbmcgui.WindowXML):
                         continue
                 else:
                     items, total = self._api_items(url)
+                if gen != self._fill_gen or self._closed.is_set():
+                    # la donnee arrive apres une requete : si un
+                    # remplissage plus recent a pris la main entre-
+                    # temps, on n'ecrase pas ses rangees (audit
+                    # v1.2.14)
+                    return
                 if items:
                     ctrl.addItems(items)
                 self.setProperty("row%d.count" % idx,
-                                 "%d stations" % total if total else "")
+                                 L(30160) % total if total else "")
             except Exception as e:
                 # garde PAR rangée : les autres rangées s'affichent
                 log("rangée %r en échec: %s" % (title, e), xbmc.LOGWARNING)
@@ -508,8 +542,16 @@ class RadioHome(xbmcgui.WindowXML):
             threading.Thread(target=self._load_home, daemon=True).start()
 
     def _quit(self):
-        """Sortie unique et sure : fermeture de la fenetre."""
+        """Sortie unique et sure : arret des threads puis fermeture."""
+        self._closed.set()
         self.close()
+
+    def onClose(self):
+        # Appele par Kodi a la fermeture : coupe court aux threads de
+        # chargement et de surveillance (audit v1.2.14).
+        ev = getattr(self, "_closed", None)
+        if ev is not None:
+            ev.set()
 
     def _toggle_favorite_focused(self):
         try:
@@ -537,7 +579,6 @@ class RadioHome(xbmcgui.WindowXML):
             xbmcgui.Dialog().notification("Radio", L(30009), time=3000)
         if self._mode == "home":
             # rafraîchir la rangée favoris
-            spec = self._rows_spec_home()
             try:
                 ctrl = self.getControl(ROW_LIST_IDS[0])
                 ctrl.reset()
@@ -545,9 +586,9 @@ class RadioHome(xbmcgui.WindowXML):
                 if items:
                     ctrl.addItems(items)
                 self.setProperty("row0.count",
-                                 "%d stations" % total if total else "")
-            except Exception:
-                pass
+                                 L(30160) % total if total else "")
+            except Exception as e:
+                log("rafraichissement favoris : %s" % e, xbmc.LOGWARNING)
 
     def _do_search(self):
         kb = xbmc.Keyboard("", L(30010))
@@ -558,7 +599,7 @@ class RadioHome(xbmcgui.WindowXML):
         if not query:
             return
         per_row = STATIONS_PER_ROW
-        base = API + "search?query=%s" % requests.utils.quote(query)
+        base = API + "search?query=%s" % urllib.parse.quote(query)
         self._mode = "search"
         # La rangee 0 (Mes stations) est CONSERVEE : les favoris restent
         # accessibles pendant une recherche ou une exploration par genre.
@@ -574,6 +615,12 @@ class RadioHome(xbmcgui.WindowXML):
     # ---------- lecture ----------
     def _play(self, name, stream, logo):
         if not stream:
+            return
+        if urllib.parse.urlparse(stream).scheme not in ("http", "https"):
+            # favori ou entree d'API altere : ne jamais transmettre un
+            # schema local (file://...) au lecteur (audit v1.2.14)
+            log("flux refuse (schema non http/https) : %r" % stream,
+                xbmc.LOGWARNING)
             return
         li = xbmcgui.ListItem(name)
         li.setArt({"thumb": logo, "icon": logo})
@@ -607,6 +654,8 @@ class RadioHome(xbmcgui.WindowXML):
         monitor = xbmc.Monitor()
         start = time.time()
         while not monitor.abortRequested() and (time.time() - start) < timeout:
+            if self._closed.is_set():
+                return
             try:
                 if player.isPlaying():
                     return  # lecture partie : rien a faire
@@ -614,10 +663,17 @@ class RadioHome(xbmcgui.WindowXML):
                 return
             if monitor.waitForAbort(0.5):
                 return
-        self._playing_url = ""
-        self.setProperty("np.playing", "0")
-        self.setProperty("np.name", "")
-        self.setProperty("np.logo", "")
+        # fenetre fermee pendant l'attente : plus aucun acces aux
+        # proprietes d'une fenetre detruite (audit v1.2.14)
+        if self._closed.is_set():
+            return
+        try:
+            self._playing_url = ""
+            self.setProperty("np.playing", "0")
+            self.setProperty("np.name", "")
+            self.setProperty("np.logo", "")
+        except Exception as e:
+            log("repos np impossible : %s" % e, xbmc.LOGWARNING)
         _np_persist(False)
 
     def _open_cinema(self, logo, name):

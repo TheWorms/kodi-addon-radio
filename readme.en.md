@@ -3,13 +3,14 @@
 # Radio
 
 <!-- version:auto -->
-**Version : 1.2.13**
+**Version : 1.2.14**
 <!-- /version:auto -->
 
 Kodi add-on to listen to **radio streams**, with a localized interface.
 
-It is **inspired by the [radio.de](https://www.radio.de) service** and relies on its
-public API `prod.radio-api.net`. The interface uses Kodi's standard localization system
+It is **inspired by the [radio.de](https://www.radio.de) service** and queries the
+`prod.radio-api.net` backend used by its web clients. This API is neither documented nor
+public: it may change without notice. The interface uses Kodi's standard localization system
 (gettext / `.po` files) and offers a "cinema" view during playback.
 
 ## Installation

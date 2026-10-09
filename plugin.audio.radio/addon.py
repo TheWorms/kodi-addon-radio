@@ -12,7 +12,6 @@ import xbmcplugin
 addon = xbmcaddon.Addon()
 L = addon.getLocalizedString
 
-addonname = addon.getAddonInfo('name')
 addonicon = addon.getAddonInfo('icon')
 addonfanart = addon.getAddonInfo('fanart')
 
@@ -28,6 +27,32 @@ headers = {
 }
 
 no_image = "special://home/addons/plugin.audio.radio/no_image.jpg"
+
+API_HOST = "prod.radio-api.net"
+DEFAULT_LOCAL = ("https://prod.radio-api.net/stations/local"
+                 "?count=25&offset=0")
+
+
+def api_url_ok(url):
+    """Liste blanche : seule l'API officielle est interrogee. Le
+    parametre url d'un plugin:// peut etre forge par un favori ou un
+    autre addon ; les contournements du type prod.radio-api.net.evil.com
+    ou evil.com/@prod.radio-api.net sont refuses (audit v1.2.14)."""
+    try:
+        parsed = urllib.parse.urlparse(url or "")
+    except ValueError:
+        return False
+    return (parsed.scheme == "https"
+            and parsed.netloc.lower() == API_HOST)
+
+
+def stream_ok(url):
+    """La lecture n'accepte que http/https : un favori ou une entree
+    d'API altere ne fait plus lire file:// ou un autre schema."""
+    try:
+        return urllib.parse.urlparse(url or "").scheme in ("http", "https")
+    except ValueError:
+        return False
 
 def render_stations(stud_list):
     """Rend une liste de stations de l'API radio-api.net.
@@ -62,8 +87,11 @@ def STATIONS(page, next_mode):
     """LOCAL() et SEARCH() fusionnees : meme rendu (render_stations),
     seule la page suivante differe (mode 2 = liste locale, 4 = recherche)."""
     try:
-        addDir('[B]%s[/B]' % L(30003), '', '', addonicon, '', '')
+        # Retour au menu : mode 99 (menu classique reel). L'ancien mode
+        # vide faisait planter int(mode) au clic (audit v1.2.14).
+        addDir('[B]%s[/B]' % L(30003), '-', 99, addonicon, '', '')
         r = requests.get(page, headers=headers, timeout=5)
+        r.raise_for_status()
         json_data = json.loads(r.content.decode())
         stud_list = json_data['playables']
         count = int(json_data['totalCount'])
@@ -80,7 +108,9 @@ def STATIONS(page, next_mode):
     except Exception as e:
         xbmc.log('plugin.audio.radio: erreur de chargement des stations (%s) : %s'
                  % (page, e), xbmc.LOGERROR)
-        xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + L(30005) + '[/B]', L(30006), 5000, addonicon))
+        # Dialog().notification : plus de builtin Notification(), casse par
+        # un nom de station avec virgules ou parentheses (audit v1.2.14)
+        xbmcgui.Dialog().notification(L(30005), L(30006), addonicon, 5000)
 
 def MYSTATIONS():
     # v1.1.0 : favoris partages avec la nouvelle interface (favorites.json,
@@ -91,7 +121,7 @@ def MYSTATIONS():
 
 def ADDSTATION(url, name, image):
     _rui.add_favorite(name, url, image)
-    xbmc.executebuiltin('Notification(%s, %s, %d, %s)' % ('[B]' + name + '[/B]', L(30009), 5000, addonicon))
+    xbmcgui.Dialog().notification(name, L(30009), addonicon, 5000)
 
 def DELSTATION(url):
     _rui.remove_favorite(url)
@@ -169,7 +199,12 @@ def get_params():
 params = get_params()
 url = urllib.parse.unquote_plus(params['url']) if 'url' in params else None
 name = urllib.parse.unquote_plus(params['name']) if 'name' in params else None
-mode = int(params['mode']) if 'mode' in params else None
+try:
+    mode = int(params['mode']) if 'mode' in params else None
+except ValueError:
+    # mode vide ou non numerique (favori forge, appel manuel) : traite
+    # comme absent, aucun plantage (audit v1.2.14)
+    mode = None
 iconimage = urllib.parse.unquote_plus(params['iconimage']) if 'iconimage' in params else None
 fanart = urllib.parse.unquote_plus(params['fanart']) if 'fanart' in params else None
 description = urllib.parse.unquote_plus(params['description']) if 'description' in params else None
@@ -204,24 +239,29 @@ elif mode == 99:
     MENU()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 1:
-    listitem = xbmcgui.ListItem(name)
-    listitem.setArt({'icon': iconimage, 'thumb': iconimage})
-    # windowed : ne pas basculer Kodi en plein ecran au demarrage du son
-    # (fenetre de visualisation, reglage musicfiles.selectaction). La vue
-    # logo de la station est l'affichage d'ecoute par defaut (v1.2.13).
-    cinema = get_bool_setting('cinema.enabled', True)
-    xbmc.Player().play(url, listitem, True)
-    if cinema:
-        try:
-            w = RadioCinema('script-radio-cinema.xml', addondir, 'Default', '720p')
-            w.set_data(iconimage, name, get_bool_setting('cinema.pulsebar', True))
-            w.doModal()
-            del w
-        except Exception as e:
-            xbmc.log('plugin.audio.radio cinema error: %s' % str(e), xbmc.LOGERROR)
+    if not stream_ok(url):
+        xbmc.log('plugin.audio.radio: flux refuse (schema non http/https) : %s'
+                 % url, xbmc.LOGWARNING)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=False,
+                                  cacheToDisc=False)
+    else:
+        listitem = xbmcgui.ListItem(name)
+        listitem.setArt({'icon': iconimage, 'thumb': iconimage})
+        # windowed : ne pas basculer Kodi en plein ecran au demarrage du son
+        # (fenetre de visualisation, reglage musicfiles.selectaction). La vue
+        # logo de la station est l'affichage d'ecoute par defaut (v1.2.13).
+        xbmc.Player().play(url, listitem, True)
+        if get_bool_setting('cinema.enabled', True):
+            try:
+                w = RadioCinema('script-radio-cinema.xml', addondir, 'Default', '720p')
+                w.set_data(iconimage, name, get_bool_setting('cinema.pulsebar', True))
+                w.doModal()
+                del w
+            except Exception as e:
+                xbmc.log('plugin.audio.radio cinema error: %s' % str(e), xbmc.LOGERROR)
 elif mode == 2:
-    if not "offset" in url:
-        url = "https://prod.radio-api.net/stations/local?count=25&offset=0"
+    if not api_url_ok(url):
+        url = DEFAULT_LOCAL
     STATIONS(url, 2)
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 3:
@@ -243,8 +283,14 @@ elif mode == 3:
         MENU()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == 4:
-    STATIONS(url, 4)
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    if api_url_ok(url):
+        STATIONS(url, 4)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    else:
+        xbmc.log('plugin.audio.radio: URL refusee (hors API) : %s' % url,
+                 xbmc.LOGWARNING)
+        xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=False,
+                                  cacheToDisc=False)
 elif mode == 5:
     MYSTATIONS()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))

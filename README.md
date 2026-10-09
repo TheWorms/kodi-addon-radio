@@ -3,13 +3,14 @@
 # Radio — interface française
 
 <!-- version:auto -->
-**Version : 1.2.13**
+**Version : 1.2.14**
 <!-- /version:auto -->
 
 Module Kodi pour écouter des **flux radio en streaming**, avec une interface **en français**.
 
-Le module s'**inspire du service [radio.de](https://www.radio.de)** et s'appuie sur son API
-publique `prod.radio-api.net`. L'interface est portée sur le système de localisation standard
+Le module s'**inspire du service [radio.de](https://www.radio.de)** et interroge le backend
+`prod.radio-api.net` utilisé par ses clients web. Cette API n'est ni documentée ni publique :
+elle peut changer sans préavis. L'interface est portée sur le système de localisation standard
 de Kodi (gettext / fichiers `.po`) et propose une vue « cinéma » pendant la lecture.
 
 ## Installation
