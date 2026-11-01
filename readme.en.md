@@ -1,3 +1,7 @@
+<!-- logo:start -->
+<p align="center"><img src="plugin.audio.radio/icon.png" alt="Logo" width="160"></p>
+<!-- logo:end -->
+
 [Français](README.md) · **English**
 
 # Radio
