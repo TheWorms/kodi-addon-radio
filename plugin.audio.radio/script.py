@@ -19,14 +19,15 @@ sys.path.insert(0, os.path.join(ADDON_DIR, "resources", "lib"))
 
 import launcher  # noqa: E402
 
-# Ecran de chargement d'abord, puis l'accueil de Kodi sous l'interface :
-# a la fermeture, pas de passage par l'explorateur (v1.2.19).
+# L'accueil de Kodi sous l'interface (a la fermeture, pas d'explorateur),
+# PUIS l'ecran de chargement : dans l'autre ordre, il bloque le changement
+# de fenetre (v1.2.19).
+launcher.go_home(launcher.HANDOFF_ARG in sys.argv[1:])
 launcher.splash_show(ADDON_DIR)
 try:
-    launcher.go_home(launcher.HANDOFF_ARG in sys.argv[1:])
-
     import radio_ui  # noqa: E402
 
-    radio_ui.open_home()  # la fenetre ferme l'ecran de chargement en s'affichant
+    launcher.splash_hide()  # avant d'ouvrir : sinon Kodi refuse d'afficher l'interface
+    radio_ui.open_home()
 finally:
     launcher.splash_hide()

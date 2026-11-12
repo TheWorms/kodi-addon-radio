@@ -2,11 +2,10 @@
 <!-- Écran de chargement : affiché du clic jusqu'à l'apparition de
      l'interface. Volontairement minimal (fond, nom, roue, texte) pour que
      Kodi le dessine tout de suite. Pas de fondu à l'ouverture : il doit
-     masquer l'explorateur immédiatement. Fondu court à la fermeture,
-     par-dessus l'interface déjà affichée. -->
+     couvrir l'accueil immédiatement. Pas de fondu à la fermeture non
+     plus : Kodi n'ouvre l'interface qu'une fois cet écran disparu. -->
 <window>
   <zorder>5</zorder>
-  <animation effect="fade" start="100" end="0" time="150">WindowClose</animation>
   <controls>
     <control type="image">
       <left>0</left><top>0</top><width>1280</width><height>720</height>
