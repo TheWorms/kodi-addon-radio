@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Écran de chargement : affiché du clic jusqu'à l'apparition de
-     l'interface. Volontairement minimal (fond, nom, roue, texte) pour que
-     Kodi le dessine tout de suite. Pas de fondu à l'ouverture : il doit
-     couvrir l'accueil immédiatement. Pas de fondu à la fermeture non
-     plus : Kodi n'ouvre l'interface qu'une fois cet écran disparu. -->
+<!-- Écran de chargement : une fenêtre (pas un dialogue), affichée du
+     lancement jusqu'à ce que l'interface la remplace. Volontairement
+     minimale (fond, nom, roue, texte) et sans animation d'ouverture ni de
+     fermeture : l'interface doit lui succéder sans rien montrer d'autre. -->
 <window>
-  <zorder>5</zorder>
   <controls>
     <control type="image">
       <left>0</left><top>0</top><width>1280</width><height>720</height>

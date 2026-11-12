@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
-"""Lancement de l'interface plein écran : écran de chargement et accueil
+"""Lancement de l'interface plein écran : écran de chargement, et accueil
 de Kodi placé SOUS l'interface.
 
 Module volontairement léger (xbmc et xbmcgui seulement) : il est chargé
 avant tout le reste pour que l'écran de chargement s'affiche au plus tôt.
 
-Pourquoi passer par l'accueil : ouvert depuis Extensions, un plugin est
-affiché par Kodi dans l'explorateur de fichiers. Si l'interface s'ouvre
-par-dessus, sa fermeture rend la main à l'explorateur, qu'on voit un
-instant avant le retour à l'accueil. L'entrée plugin remplace donc tout de
-suite l'explorateur par l'accueil et lance l'interface par l'entrée script
-(RunScript) : à la fermeture, Kodi revient directement à l'accueil.
+L'écran de chargement est une FENÊTRE, pas un dialogue. Kodi refuse tout
+changement de fenêtre tant qu'un dialogue est affiché : il fallait donc le
+fermer avant d'ouvrir l'interface, et l'accueil réapparaissait une
+demi-seconde entre les deux. Une fenêtre, elle, est remplacée directement
+par l'interface, sans rien montrer d'autre. Une fois l'interface affichée,
+la fenêtre de chargement est détruite : Kodi la retire alors de son
+historique, et la fermeture de l'interface ramène droit à l'accueil.
 
-Ordre impératif : Kodi refuse de changer de fenêtre tant qu'un dialogue
-est affiché, et l'écran de chargement en est un. Il ne doit donc JAMAIS
-être à l'écran quand on demande l'accueil ni quand l'interface s'ouvre
-(0.6.29 / 1.2.19 de test : écran de chargement bloqué, interface jamais
-affichée). D'où : accueil d'abord, écran de chargement ensuite, et
-fermeture de cet écran AVANT d'ouvrir l'interface.
+Pourquoi passer par l'accueil : lancé comme plugin (Extensions, ou
+raccourci ActivateWindow), l'addon est affiché par Kodi dans l'explorateur
+de fichiers AVANT que la moindre ligne de l'addon ne s'exécute. Si
+l'interface s'ouvrait par-dessus, sa fermeture rendrait la main à
+l'explorateur. L'entrée plugin le remplace donc par l'accueil puis confie
+l'ouverture à l'entrée script (RunScript). Lancé directement par
+RunScript(<id de l'addon>) (raccourci du menu d'accueil, favori),
+l'explorateur n'est jamais ouvert.
 """
+import threading
 import time
 
 import xbmc
@@ -27,10 +31,6 @@ import xbmcgui
 ADDON_ID = 'plugin.audio.radio'
 SPLASH_XML = 'script-radio-splash.xml'
 SPLASH_RES = '720p'
-# Écran de chargement affiché par le service de l'addon quand il tourne
-# (il est déjà en mémoire : affichage immédiat), sinon par l'entrée script.
-PROP_SPLASH = 'radio.splash'
-PROP_ALIVE = PROP_SPLASH + '.alive'
 HANDOFF_ARG = 'handoff'
 MAIN_XML = 'script-radio-home.xml'
 
@@ -42,12 +42,15 @@ _NOT_USER = ('Window.IsActive(home) | Window.IsActive(filebrowser) | Window.IsAc
 # Fenêtres de type explorateur, à remplacer par l'accueil avant d'ouvrir.
 _EXPLORER = ('Window.IsActive(videos) | Window.IsActive(music) | Window.IsActive(programs)'
              ' | Window.IsActive(addonbrowser) | Window.IsActive(filemanager)')
+_SPLASH_VISIBLE = 'Window.IsVisible(%s)' % SPLASH_XML
 
-_local = None
+_splash = None
+_lock = threading.Lock()
 
 
-class _Splash(xbmcgui.WindowXMLDialog):
-    pass
+class _Splash(xbmcgui.WindowXML):
+    def onAction(self, action):
+        pass  # Retour ne ferme pas l'écran de chargement : l'interface arrive
 
 
 def user_open():
@@ -56,10 +59,6 @@ def user_open():
     if xbmc.getCondVisibility('Window.IsVisible(%s)' % MAIN_XML):
         return False
     return not xbmc.getCondVisibility(_NOT_USER)
-
-
-def _service_alive():
-    return xbmcgui.Window(10000).getProperty(PROP_ALIVE) == '1'
 
 
 def _wait(condition, expected, timeout):
@@ -78,10 +77,7 @@ def hand_off(handle):
     import xbmcplugin
     xbmcplugin.endOfDirectory(handle, succeeded=False, cacheToDisc=False)
     xbmc.executebuiltin('ReplaceWindow(home)')
-    # L'accueil doit être en place AVANT l'écran de chargement.
-    at_home = _wait('Window.IsActive(home)', True, 2.0)
-    if at_home and _service_alive():
-        xbmcgui.Window(10000).setProperty(PROP_SPLASH, 'show')
+    _wait('Window.IsActive(home)', True, 2.0)
     xbmc.executebuiltin('RunScript(%s,%s)' % (ADDON_ID, HANDOFF_ARG))
 
 
@@ -107,34 +103,48 @@ def go_home(handed_off, timeout=3.0):
     return True
 
 
+def _take():
+    global _splash
+    with _lock:
+        win, _splash = _splash, None
+    return win
+
+
+def _release():
+    """Fil de fond : dès que l'interface a pris la place de l'écran de
+    chargement, celui-ci est détruit. Kodi le retire de son historique des
+    fenêtres ; sans cela, la fermeture de l'interface le réafficherait."""
+    _wait(_SPLASH_VISIBLE, False, 60.0)
+    xbmc.Monitor().waitForAbort(0.2)  # laisse Kodi finir d'installer l'interface
+    win = _take()
+    del win  # plus aucune référence : Kodi détruit la fenêtre
+
+
 def splash_show(addon_path):
     """Entrée script, APRÈS go_home : écran de chargement pendant le
-    chargement des modules."""
-    global _local
-    if xbmc.getCondVisibility('Window.IsVisible(%s)' % SPLASH_XML):
-        return  # déjà affiché par le service
-    if _service_alive():
-        xbmcgui.Window(10000).setProperty(PROP_SPLASH, 'show')
-        return
+    chargement des modules. Reste affiché jusqu'à ce que l'interface le
+    remplace (ou jusqu'à splash_hide)."""
+    global _splash
     try:
-        _local = _Splash(SPLASH_XML, addon_path, 'Default', SPLASH_RES)
-        _local.show()
+        win = _Splash(SPLASH_XML, addon_path, 'Default', SPLASH_RES)
+        win.show()
+        with _lock:
+            _splash = win
+        threading.Thread(target=_release, name='%s-splash' % ADDON_ID, daemon=True).start()
     except Exception as exc:  # l'écran de chargement n'est jamais bloquant
         xbmc.log('[%s] écran de chargement : %s' % (ADDON_ID, exc), xbmc.LOGWARNING)
-        _local = None
 
 
 def splash_hide():
-    """À appeler AVANT d'ouvrir l'interface : ferme l'écran de chargement
-    et attend qu'il ait vraiment disparu. Sans risque de l'appeler
-    plusieurs fois, ou sans écran affiché."""
-    global _local
+    """À appeler en fin de script. Si l'interface ne s'est pas ouverte
+    (erreur, relance ignorée), l'écran de chargement est encore là : on le
+    ferme, Kodi revient à la fenêtre précédente. Sans effet sinon."""
+    win = _take()
+    if win is None:
+        return
     try:
-        if _service_alive():
-            xbmcgui.Window(10000).setProperty(PROP_SPLASH, 'hide')
-        if _local is not None:
-            _local.close()
+        if xbmc.getCondVisibility(_SPLASH_VISIBLE):
+            win.close()
     except Exception:
         pass
-    _local = None
-    _wait('Window.IsVisible(%s)' % SPLASH_XML, False, 1.5)
+    del win
