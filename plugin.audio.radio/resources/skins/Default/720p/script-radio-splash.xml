@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Écran de chargement : affiché du clic jusqu'à l'apparition de
+     l'interface. Volontairement minimal (fond, nom, roue, texte) pour que
+     Kodi le dessine tout de suite. Pas de fondu à l'ouverture : il doit
+     masquer l'explorateur immédiatement. Fondu court à la fermeture,
+     par-dessus l'interface déjà affichée. -->
+<window>
+  <zorder>5</zorder>
+  <animation effect="fade" start="100" end="0" time="150">WindowClose</animation>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="FF10141B">white.png</texture>
+    </control>
+    <control type="label">
+      <left>0</left><top>273</top><width>1280</width><height>60</height>
+      <align>center</align><aligny>center</aligny>
+      <font>font27</font><textcolor>FF10A090</textcolor>
+      <label>Radio</label>
+    </control>
+    <control type="image">
+      <left>608</left><top>347</top><width>64</width><height>64</height>
+      <texture colordiffuse="FF10A090">spinner.png</texture>
+      <aspectratio>keep</aspectratio>
+      <animation effect="rotate" start="0" end="-360" center="auto" time="900" loop="true" condition="true">Conditional</animation>
+    </control>
+    <control type="label">
+      <left>0</left><top>427</top><width>1280</width><height>28</height>
+      <align>center</align><aligny>center</aligny>
+      <font>font13</font><textcolor>FFAAAAAA</textcolor>
+      <label>$ADDON[plugin.audio.radio 30161]</label>
+    </control>
+  </controls>
+</window>

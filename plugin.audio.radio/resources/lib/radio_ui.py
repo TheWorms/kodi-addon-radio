@@ -35,6 +35,8 @@ import xbmcaddon
 import xbmcgui
 import xbmcvfs
 
+import launcher
+
 ADDON = xbmcaddon.Addon()
 ADDON_PATH = xbmcvfs.translatePath(ADDON.getAddonInfo("path"))
 PROFILE = xbmcvfs.translatePath(ADDON.getAddonInfo("profile"))
@@ -350,6 +352,7 @@ class RadioHome(xbmcgui.WindowXML):
     def onInit(self):
         log("RadioHome onInit — addon v%s"
             % xbmcaddon.Addon().getAddonInfo("version"))
+        launcher.splash_hide()  # l'interface est la : l'ecran de chargement s'efface
         self._mode = "home"
         self._cinema = None
         # Course entre chargements et threads survivant a la fenetre

@@ -210,3 +210,7 @@ msgstr "Enfants"
 msgctxt "#30160"
 msgid "%d stations"
 msgstr "%d stations"
+
+msgctxt "#30161"
+msgid "Loading..."
+msgstr "Chargement..."

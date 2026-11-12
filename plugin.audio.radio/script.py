@@ -17,6 +17,16 @@ import sys
 ADDON_DIR = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(ADDON_DIR, "resources", "lib"))
 
-import radio_ui  # noqa: E402
+import launcher  # noqa: E402
 
-radio_ui.open_home()
+# Ecran de chargement d'abord, puis l'accueil de Kodi sous l'interface :
+# a la fermeture, pas de passage par l'explorateur (v1.2.19).
+launcher.splash_show(ADDON_DIR)
+try:
+    launcher.go_home(launcher.HANDOFF_ARG in sys.argv[1:])
+
+    import radio_ui  # noqa: E402
+
+    radio_ui.open_home()  # la fenetre ferme l'ecran de chargement en s'affichant
+finally:
+    launcher.splash_hide()
